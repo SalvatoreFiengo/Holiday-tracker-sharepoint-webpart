@@ -1,0 +1,1 @@
+{"version":3,"file":"IwebPart.d.ts","sourceRoot":"","sources":["../../src/webparts/interfaces/IwebPart.ts"],"names":[],"mappings":"AACA,MAAM,CAAC,OAAO,WAAW,cAAc;IACnC,WAAW,EAAE,MAAM,CAAC;IACpB,IAAI,EAAE,MAAM,CAAC;IACb,OAAO,EAAE,OAAO,CAAC;CACpB"}

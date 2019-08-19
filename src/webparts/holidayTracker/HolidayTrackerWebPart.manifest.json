@@ -1,0 +1,24 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx/client-side-web-part-manifest.schema.json",
+  "id": "15bdae59-281d-4719-9ee5-e524db5a786d",
+  "alias": "HolidayTrackerWebPart",
+  "componentType": "WebPart",
+
+  "version": "*",
+  "manifestVersion": 2,
+
+ 
+  "requiresCustomScript": false,
+  "supportedHosts": ["SharePointWebPart"],
+
+  "preconfiguredEntries": [{
+    "groupId": "5c03119e-3074-46fd-976b-c60198311f70",
+    "group": { "default": "Other" },
+    "title": { "default": "Holiday tracker" },
+    "description": { "default": "Allows management of OOO and annual leaves" },
+    "officeFabricIconFontName": "Page",
+    "properties": {
+      "description": "Holiday tracker"
+    }
+  }]
+}

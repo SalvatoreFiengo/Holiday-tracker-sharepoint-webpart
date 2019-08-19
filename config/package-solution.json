@@ -1,0 +1,13 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/package-solution.schema.json",
+  "solution": {
+    "name": "holiday-tracker-web-part-client-side-solution",
+    "id": "ea42a37c-0097-4639-99d7-91d69af7e064",
+    "version": "1.0.0.0",
+    "includeClientSideAssets": true,
+    "isDomainIsolated": true
+  },
+  "paths": {
+    "zippedPackage": "solution/holiday-tracker-web-part.sppkg"
+  }
+}

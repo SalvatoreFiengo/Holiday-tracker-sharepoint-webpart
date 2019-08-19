@@ -1,0 +1,18 @@
+{
+  "$schema": "https://developer.microsoft.com/json-schemas/spfx-build/config.2.0.schema.json",
+  "version": "2.0",
+  "bundles": {
+    "holiday-tracker-web-part": {
+      "components": [
+        {
+          "entrypoint": "./lib/webparts/holidayTracker/HolidayTrackerWebPart.js",
+          "manifest": "./src/webparts/holidayTracker/HolidayTrackerWebPart.manifest.json"
+        }
+      ]
+    }
+  },
+  "externals": {},
+  "localizedResources": {
+    "HolidayTrackerWebPartStrings": "lib/webparts/holidayTracker/loc/{locale}.js"
+  }
+}

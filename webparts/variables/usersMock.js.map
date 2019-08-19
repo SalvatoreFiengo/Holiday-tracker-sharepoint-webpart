@@ -1,0 +1,1 @@
+{"version":3,"file":"usersMock.js","sourceRoot":"","sources":["../../src/webparts/variables/usersMock.ts"],"names":[],"mappings":"AACA,IAAM,SAAS,GAAO;IAClB,EAAE,EAAC,GAAG;IACN,IAAI,EAAE,MAAM;IACZ,KAAK,EAAE,gBAAgB;IACvB,IAAI,EAAC,CAAC,CAAC,EAAC,CAAC,CAAC;IACV,EAAE,EAAC,CAAC,CAAC,EAAC,CAAC,CAAC;IACR,QAAQ,EAAC,cAAc;IACvB,aAAa,EAAC,wBAAwB;CACzC,CAAA;AACD,eAAe,SAAS,CAAC"}
