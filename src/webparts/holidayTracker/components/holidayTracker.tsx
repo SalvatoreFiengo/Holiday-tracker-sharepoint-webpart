@@ -37,12 +37,27 @@ export interface IState {
   count:number,
   listLoaded: boolean,
   lists: [ISPList],
-  list: ISPList
+  list: ISPList,
+  listValues: any[],
+  userName:string,
+  selectedDate:Date
 };
 
 export interface ISPList {
   Title: string;
-  Id: string;  
+  Id: string; 
+  V_dash: string;
+  From: string;
+  To: string;
+  Approver: string;
+  Comments: string;
+  Line_Of_Business: string;
+  Request_Type: string;
+  Leave_duration: string;
+  Status: string;
+  Working_days: string;
+
+
 }
 export interface ISPLists{
   value: ISPList[]
@@ -62,11 +77,41 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
       modal: false,
       selectedWeek: dates.weeksByMonth(dates.firstLastDayOfMonth(1,dates.now.getMonth()),dates.firstLastDayOfMonth(0,dates.now.getMonth()),true),
       weekIsSelected: false,
-      selectedMonth:  dates.now.getMonth(),
+      selectedMonth:  dates.now.getMonth()+1,
       count:dates.now.getMonth(),
       listLoaded: false,
-      lists: [{Title:"",Id:""}],
-      list: {Title:"", Id:""}
+      lists: [
+        {
+        Title:"",
+        Id:"", 
+        Working_days:"",
+        V_dash:"", 
+        To:"",
+        Status:"", 
+        Request_Type:"",
+        Line_Of_Business:"",
+        Leave_duration:"",
+        From:"",
+        Comments:"",
+        Approver:""
+      }],
+      list: {
+        Title:"",
+        Id:"", 
+        Working_days:"",
+        V_dash:"", 
+        To:"",
+        Status:"", 
+        Request_Type:"",
+        Line_Of_Business:"",
+        Leave_duration:"",
+        From:"",
+        Comments:"",
+        Approver:""
+      },
+      listValues: [],
+      userName:"",
+      selectedDate:dates.now 
     }
     this.toggle = this.toggle.bind(this);
   };
@@ -79,24 +124,7 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
 
 
   public componentDidMount(): void {
-    this._renderListAsync();
-    fetch(
-        '../../_api/web/currentuser',
-        {
-            method: 'GET',
-            credentials: 'same-origin',
-            headers: {
-                'accept': 'application/json'
-            }
-        }
-        ).then(response => {
-            return response.json();
-        }).then(json => {
-
-            this.setState({ webPartData: json.Title, isWDataValid: true });
-        }).catch(e => {
-            console.log(e);
-        });
+    this._renderSpecificListAsync();
   }
 
   private _getMockListData(): Promise<ISPLists> {
@@ -110,16 +138,30 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
   getSpLists=(response)=>{
     this.setState({
       lists: response,
-    }, function(){console.log("response:"+this.state.lists[0].Title)})
+    }, function(){console.log("list updated")})
+  }
+
+  getSpecificList=(response)=>{
+    let values=Object.keys(response.value).map(item=>response.value[item])
+    this.setState({
+      listValues: values 
+    }, function(){console.log("listValues updated ")})
   }
 
   _getListData(): Promise<ISPLists> {
     if(this.context !== undefined){
       return this.props.spHttpClient.get(this.props.siteUrl + `/_api/web/lists?$filter=Hidden eq false`, SPHttpClient.configurations.v1)
         .then((response: SPHttpClientResponse) => {
-          return response.json();
+           return response.json()
         });
     }
+  }
+
+  _getSpecificList(): Promise<ISPList> {
+    return this.props.spHttpClient.get(this.props.siteUrl + `/_api/web/Lists/GetByTitle('Approvals')/items`, SPHttpClient.configurations.v1)
+        .then((response: SPHttpClientResponse) => {
+            return response.json()
+        });
   }
 
   private _renderListAsync(): void {
@@ -139,6 +181,12 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
     }
   }
 
+  private _renderSpecificListAsync(): void {
+    this._getSpecificList().then((res)=>{
+      this.getSpecificList(res)
+    })
+  }
+
   render(){
 
     let prev=(count:number)=>{
@@ -148,7 +196,8 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
       if(counter==0)return
       this.setState({
         count:counter,
-        selectedMonth:counter
+        selectedMonth:counter,
+        selectedDate: new Date((new Date).getFullYear(), counter-1,(new Date).getDate())
       },()=>updateWeeks(0,this.state.selectedMonth))
       
     }
@@ -158,8 +207,11 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
       if(counter>=12)counter=12
       this.setState({
         count:counter,
-        selectedMonth:counter
-      },()=>updateWeeks(0,counter))
+        selectedMonth:counter,
+        selectedDate:new Date((new Date).getFullYear(), counter-1,(new Date).getDate())
+      },()=>{
+        updateWeeks(0,counter)
+      })
       
     }
     let updateWeeks=(n:number,count:number)=>{
@@ -181,6 +233,26 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
       }
     }
 
+    let checkDates=(from:string, to:string, selectedDate:string):boolean=>{
+
+      const start = new Date(from).getMonth();
+      const end = new Date(to).getMonth();
+      const selected = new Date(selectedDate).getMonth();
+      const startNumber:number = Number(start);
+      const endNumber:number = Number(end);
+      const selectedNumber:number = Number(selected);
+      
+      if(startNumber=== 0 || endNumber === 0){
+        return false;
+      }
+      else if(startNumber<=selectedNumber && selectedNumber<=endNumber ){
+        return true;
+      }else{
+        return false;
+      }
+  
+    }
+    
 
     return (
       <div>
@@ -219,15 +291,22 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
           </Row>
           <Row>
             <Col md="12">
-              <Button onClick={()=>this._renderListAsync()}>Update lists</Button>
-              
-              {this.state.error? <p>{this.state.error}</p>:null}
-              {this.state.listLoaded? <div>...Loading</div>:
-                this.state.lists.map(item=>
-                <ul className="list">
-                  <li className="listItem" key={item.Id}>{item.Title}</li> 
-                </ul>
-                )}
+              <Button onClick={()=>this._renderListAsync()}>Refresh lists</Button>
+
+              {this.state.list!== undefined? this.state.listValues.map(item=>{
+                if(checkDates(item.From, item.To, this.state.selectedDate.toString())){
+                
+                return <ul className="list">
+                  <li className="listItem">
+                    <ul className="list">
+                      <li className="listItem">E-mail: {item.vdash}, Agent Name: {item.agentName} </li>
+                      
+                      <li>Out Of Office from: {new Date(item.From).getDate()} to: {new Date(item.To).getDate()}</li>
+                      
+                    </ul>
+                  </li>
+                </ul>}else{return null}
+              }):<h2>No data available, please refresh</h2>}
               
             </Col>
           </Row>
