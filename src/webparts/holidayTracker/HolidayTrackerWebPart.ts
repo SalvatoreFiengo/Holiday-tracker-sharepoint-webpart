@@ -20,9 +20,9 @@ export default class HolidayTrackerWebPart extends BaseClientSideWebPart<IHolida
 
   public render(): void {
     const element: React.ReactElement<IHolidayTrackerProps> = React.createElement(HolidayTracker,      {
-      spHttpClient: this.context.spHttpClient,
       siteUrl: this.context.pageContext.web.absoluteUrl,
-      listName: this.properties.listName
+      listName: this.properties.listName,
+      context: this.context
     })
    
   

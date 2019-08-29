@@ -1,4 +1,5 @@
 import * as React from 'react';
+
 import {Navbar, NavbarBrand, Nav, NavItem, NavLink, Row, Col, Card, Button} from 'reactstrap';
 import './HolidayTracker.scss'
 import Iuser from '../../interfaces/Iusers';
@@ -8,11 +9,11 @@ import {IHolidayTrackerProps} from '../components/IHolidayTrackerProps'
 
 import HolidayTableComponent from '../components/holidayTableComponent';
 import HolidayNewModal from '../components/holidayNewModal';
-import HolydayNewForm from '../components/holidayNewForm';
 import dates from '../../variables/dates';
 import usersMock from '../../variables/usersMock';
 import MockHttpClient from './mockLists';
 
+import { WebPartContext } from '@microsoft/sp-webpart-base';
 import {
   SPHttpClient,
   SPHttpClientResponse   
@@ -24,6 +25,7 @@ import {
 
 
 export interface IState {
+  context: WebPartContext,
   error: string,
   webPartData:IHelloUserPart["data"],
   isWDataValid:IHelloUserPart["isValid"],
@@ -44,30 +46,27 @@ export interface IState {
 };
 
 export interface ISPList {
-  Title: string;
+  request_type: string;
   Id: string; 
-  V_dash: string;
-  From: string;
-  To: string;
-  Approver: string;
+  e_mail: string;
+  agent_name: string; 
+  from: string;
+  to: string;
+  approver: string;
   Comments: string;
-  Line_Of_Business: string;
-  Request_Type: string;
-  Leave_duration: string;
-  Status: string;
-  Working_days: string;
-
-
+  lob: string;
+  approved: boolean;
 }
 export interface ISPLists{
   value: ISPList[]
 }
 class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
-    
+  
   constructor(props:IHolidayTrackerProps){
     super(props)
   
     this.state={
+      context: this.props.context,
       error: null,
       webPartData: "loading",
       isWDataValid: false,
@@ -82,38 +81,35 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
       listLoaded: false,
       lists: [
         {
-        Title:"",
+        request_type:"",
         Id:"", 
-        Working_days:"",
-        V_dash:"", 
-        To:"",
-        Status:"", 
-        Request_Type:"",
-        Line_Of_Business:"",
-        Leave_duration:"",
-        From:"",
+        e_mail:"",
+        agent_name:"",  
+        to:"",
+        approved: false, 
+        lob:"",
+        from:"",
         Comments:"",
-        Approver:""
+        approver:""
       }],
       list: {
-        Title:"",
+        request_type:"",
         Id:"", 
-        Working_days:"",
-        V_dash:"", 
-        To:"",
-        Status:"", 
-        Request_Type:"",
-        Line_Of_Business:"",
-        Leave_duration:"",
-        From:"",
+        e_mail:"",
+        agent_name:"", 
+        to:"",
+        approved: false, 
+        lob:"",
+        from:"",
         Comments:"",
-        Approver:""
+        approver:""
       },
       listValues: [],
       userName:"",
       selectedDate:dates.now 
     }
     this.toggle = this.toggle.bind(this);
+    
   };
 
   toggle() {
@@ -145,12 +141,12 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
     let values=Object.keys(response.value).map(item=>response.value[item])
     this.setState({
       listValues: values 
-    }, function(){console.log("listValues updated ")})
+    }, function(){console.log("listValues -- ")})
   }
 
   _getListData(): Promise<ISPLists> {
-    if(this.context !== undefined){
-      return this.props.spHttpClient.get(this.props.siteUrl + `/_api/web/lists?$filter=Hidden eq false`, SPHttpClient.configurations.v1)
+    if(this.state.context !== undefined){
+      return this.state.context.spHttpClient.get(this.props.siteUrl + `/_api/web/lists?$filter=Hidden eq false`, SPHttpClient.configurations.v1)
         .then((response: SPHttpClientResponse) => {
            return response.json()
         });
@@ -158,12 +154,33 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
   }
 
   _getSpecificList(): Promise<ISPList> {
-    return this.props.spHttpClient.get(this.props.siteUrl + `/_api/web/Lists/GetByTitle('Approvals')/items`, SPHttpClient.configurations.v1)
+    return this.state.context.spHttpClient.get(this.props.siteUrl + `/_api/web/Lists/GetByTitle('ooo_test')/items`, SPHttpClient.configurations.v1)
         .then((response: SPHttpClientResponse) => {
             return response.json()
         });
   }
 
+  _createItem():Promise<void> {
+    const body: string= JSON.stringify({
+      '__metadata': {
+        'type': 'SP.Data.Ooo_x005f_testListItem'
+      },
+      'Title':'email@email.com'
+    }) 
+    return this.state.context.spHttpClient.post(this.props.siteUrl+`/_api/web/lists/getbytitle('ooo_test')/items`,
+    SPHttpClient.configurations.v1,
+    {
+      headers: {
+        'Accept': 'application/json;odata=nometadata',
+        'Content-type': 'application/json;odata=verbose',
+        'odata-version': ''
+      },
+      body: body
+    }).then((response: SPHttpClientResponse): Promise<any>=>{
+      return response.json();
+    })
+  }
+  
   private _renderListAsync(): void {
     // Local environment
     if (Environment.type === EnvironmentType.Local) {
@@ -291,17 +308,18 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
           </Row>
           <Row>
             <Col md="12">
-              <Button onClick={()=>this._renderListAsync()}>Refresh lists</Button>
+              <Button onClick={()=>this._createItem()}>Refresh lists</Button>
 
               {this.state.list!== undefined? this.state.listValues.map(item=>{
-                if(checkDates(item.From, item.To, this.state.selectedDate.toString())){
+                if(checkDates(item.from, item.to, this.state.selectedDate.toString())){
                 
                 return <ul className="list">
                   <li className="listItem">
                     <ul className="list">
-                      <li className="listItem">E-mail: {item.vdash}, Agent Name: {item.agentName} </li>
-                      
-                      <li>Out Of Office from: {new Date(item.From).getDate()} to: {new Date(item.To).getDate()}</li>
+                    <li className="listItem">Request type: {item.Title} </li>
+                      <li className="listItem">E-mail: {item.email}, Agent Name: {item.sykj} </li>
+
+                      <li>Out Of Office from: {new Date(item.from).getDate()} to: {new Date(item.to).getDate()}</li>
                       
                     </ul>
                   </li>
@@ -310,8 +328,8 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
               
             </Col>
           </Row>
-          <HolidayNewModal className="" toggle={this.toggle} modal={this.state.modal} >
-            <HolydayNewForm/>
+          <HolidayNewModal className="" toggle={this.toggle} modal={this.state.modal} context={this.state.context} createItem={this._createItem}>
+            {this.props.children}
           </HolidayNewModal>
         </section>
       </div>

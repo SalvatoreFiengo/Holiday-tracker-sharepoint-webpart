@@ -1,7 +1,15 @@
 import * as React from 'react';
 import { Button, Form, FormGroup, Label, Input, FormText } from 'reactstrap';
+import { WebPartContext } from '@microsoft/sp-webpart-base';
 
-export default class Example extends React.Component {
+interface InewFormProps {
+  createItem: ()=>void,
+  context: WebPartContext
+}
+export default class HolidayForm extends React.Component<InewFormProps> {
+  constructor(props){
+    super(props)
+  }
   render() {
     return (
       <Form>
@@ -23,8 +31,10 @@ export default class Example extends React.Component {
           <Label for="comments">Comments</Label>
           <Input type="textarea" name="text" id="comments" />
         </FormGroup>
-        <Button>Submit</Button>
+        <Button onClick={()=>this.props.createItem()}> Submit </Button>
       </Form>
     );
+     
   }
+  
 }
