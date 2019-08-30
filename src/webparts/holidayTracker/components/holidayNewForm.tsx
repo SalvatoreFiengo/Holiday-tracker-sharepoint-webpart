@@ -3,14 +3,17 @@ import { Button, Form, FormGroup, Label, Input, FormText } from 'reactstrap';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 
 interface InewFormProps {
-  createItem: ()=>void,
-  context: WebPartContext
+  createItem: (ctx, siteUrl)=>void,
+  context: WebPartContext,
+  siteUrl:string
 }
 export default class HolidayForm extends React.Component<InewFormProps> {
   constructor(props){
     super(props)
   }
   render() {
+    let ctx = this.props.context
+    let siteUrl = this.props.siteUrl
     return (
       <Form>
         <FormGroup>
@@ -31,7 +34,7 @@ export default class HolidayForm extends React.Component<InewFormProps> {
           <Label for="comments">Comments</Label>
           <Input type="textarea" name="text" id="comments" />
         </FormGroup>
-        <Button onClick={()=>this.props.createItem()}> Submit </Button>
+        <Button onClick={()=>this.props.createItem(ctx, siteUrl)}> Submit </Button>
       </Form>
     );
      

@@ -26,6 +26,7 @@ import {
 
 export interface IState {
   context: WebPartContext,
+  siteUrl: string,
   error: string,
   webPartData:IHelloUserPart["data"],
   isWDataValid:IHelloUserPart["isValid"],
@@ -67,6 +68,7 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
   
     this.state={
       context: this.props.context,
+      siteUrl: this.props.siteUrl,
       error: null,
       webPartData: "loading",
       isWDataValid: false,
@@ -120,7 +122,7 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
 
 
   public componentDidMount(): void {
-    this._renderSpecificListAsync();
+    this._renderSpecificListAsync(this.state.context, this.state.siteUrl);
   }
 
   private _getMockListData(): Promise<ISPLists> {
@@ -143,31 +145,31 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
       listValues: values 
     }, function(){console.log("listValues -- ")})
   }
-
-  _getListData(): Promise<ISPLists> {
-    if(this.state.context !== undefined){
-      return this.state.context.spHttpClient.get(this.props.siteUrl + `/_api/web/lists?$filter=Hidden eq false`, SPHttpClient.configurations.v1)
+  
+  _getListData(ctx, siteUrl): Promise<ISPLists> {
+    if(ctx !== undefined){
+      return ctx.spHttpClient.get(siteUrl + `/_api/web/lists?$filter=Hidden eq false`, SPHttpClient.configurations.v1)
         .then((response: SPHttpClientResponse) => {
            return response.json()
         });
     }
   }
 
-  _getSpecificList(): Promise<ISPList> {
-    return this.state.context.spHttpClient.get(this.props.siteUrl + `/_api/web/Lists/GetByTitle('ooo_test')/items`, SPHttpClient.configurations.v1)
+  _getSpecificList(ctx, siteUrl): Promise<ISPList> {
+    return ctx.spHttpClient.get(siteUrl + `/_api/web/Lists/GetByTitle('ooo_test')/items`, SPHttpClient.configurations.v1)
         .then((response: SPHttpClientResponse) => {
             return response.json()
         });
   }
 
-  _createItem():Promise<void> {
+  _createItem(ctx, siteUrl):Promise<void> {
     const body: string= JSON.stringify({
       '__metadata': {
         'type': 'SP.Data.Ooo_x005f_testListItem'
       },
       'Title':'email@email.com'
     }) 
-    return this.state.context.spHttpClient.post(this.props.siteUrl+`/_api/web/lists/getbytitle('ooo_test')/items`,
+    return ctx.spHttpClient.post(siteUrl+`/_api/web/lists/getbytitle('ooo_test')/items`,
     SPHttpClient.configurations.v1,
     {
       headers: {
@@ -181,30 +183,31 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
     })
   }
   
-  private _renderListAsync(): void {
-    // Local environment
-    if (Environment.type === EnvironmentType.Local) {
-        this._getMockListData().then((response) => {
-          this.getSpLists(response.value)
-      }).catch(error =>this.setState({error: error, listLoaded: true}));
-    }
-    else if ((Environment.type == EnvironmentType.SharePoint || 
-              Environment.type == EnvironmentType.ClassicSharePoint)) {
-      this._getListData().then((response) => {
+  // private _renderListAsync(): void {
+  //   // Local environment
+  //   if (Environment.type === EnvironmentType.Local) {
+  //       this._getMockListData().then((response) => {
+  //         this.getSpLists(response.value)
+  //     }).catch(error =>this.setState({error: error, listLoaded: true}));
+  //   }
+  //   else if ((Environment.type == EnvironmentType.SharePoint || 
+  //             Environment.type == EnvironmentType.ClassicSharePoint)) {
+  //     this._getListData().then((response) => {
 
-          this.getSpLists(response.value)
+  //         this.getSpLists(response.value)
 
-          }).catch(error =>this.setState({error: error, listLoaded: true}));    
-    }
-  }
+  //         }).catch(error =>this.setState({error: error, listLoaded: true}));    
+  //   }
+  // }
 
-  private _renderSpecificListAsync(): void {
-    this._getSpecificList().then((res)=>{
+  private _renderSpecificListAsync(ctx, siteUrl): void {
+    this._getSpecificList(ctx, siteUrl).then((res)=>{
       this.getSpecificList(res)
     })
   }
 
   render(){
+    let siteUrl = this.state.siteUrl
 
     let prev=(count:number)=>{
       let counter=count;
@@ -270,7 +273,7 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
   
     }
     
-
+    
     return (
       <div>
         <header>
@@ -308,7 +311,7 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
           </Row>
           <Row>
             <Col md="12">
-              <Button onClick={()=>this._createItem()}>Refresh lists</Button>
+              <Button onClick={()=>{}}>Refresh lists</Button>
 
               {this.state.list!== undefined? this.state.listValues.map(item=>{
                 if(checkDates(item.from, item.to, this.state.selectedDate.toString())){
@@ -328,7 +331,7 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
               
             </Col>
           </Row>
-          <HolidayNewModal className="" toggle={this.toggle} modal={this.state.modal} context={this.state.context} createItem={this._createItem}>
+          <HolidayNewModal className="" toggle={this.toggle} modal={this.state.modal} context={this.state.context} siteUrl={this.props.siteUrl} createItem={this._createItem}>
             {this.props.children}
           </HolidayNewModal>
         </section>
