@@ -167,8 +167,14 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
       '__metadata': {
         'type': 'SP.Data.Ooo_x005f_testListItem'
       },
-      'Title':'email@email.com'
+      'Title':"email",
+      'request_type':'request_type',
+      'from': 'from',
+      'to': 'to',
+      'approved': 'approved',
+      'lob':'lob'
     }) 
+
     return ctx.spHttpClient.post(siteUrl+`/_api/web/lists/getbytitle('ooo_test')/items`,
     SPHttpClient.configurations.v1,
     {
@@ -207,7 +213,6 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
   }
 
   render(){
-    let siteUrl = this.state.siteUrl
 
     let prev=(count:number)=>{
       let counter=count;
@@ -306,7 +311,7 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
         <section className="mt-5">
           <Row>
             <Col md="12">
-              <HolidayTableComponent prev={(count)=>prev(count)} next={next} count={this.state.selectedMonth} month={dates.months[this.state.selectedMonth-1]} user={this.state.user} dates={this.state.selectedWeek}/> 
+              <HolidayTableComponent prev={(count)=>prev(count)} next={next} count={this.state.selectedMonth} month={dates.months[this.state.selectedMonth-1]} dates={this.state.selectedWeek}/> 
             </Col>
           </Row>
           <Row>
@@ -331,7 +336,19 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
               
             </Col>
           </Row>
-          <HolidayNewModal className="" toggle={this.toggle} modal={this.state.modal} context={this.state.context} siteUrl={this.props.siteUrl} createItem={this._createItem}>
+          <HolidayNewModal
+            className=""
+            toggle={this.toggle} 
+            modal={this.state.modal} 
+            context={this.state.context} 
+            siteUrl={this.props.siteUrl} 
+            createItem={this._createItem} 
+            prev={(count)=>prev(count)} 
+            next={next} 
+            count={this.state.selectedMonth} 
+            month={dates.months[this.state.selectedMonth-1]} 
+            dates={this.state.selectedWeek}
+>
             {this.props.children}
           </HolidayNewModal>
         </section>

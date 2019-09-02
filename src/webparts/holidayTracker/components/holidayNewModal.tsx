@@ -9,7 +9,12 @@ interface IholidaysMProps{
     createItem: (ctx, siteUrl)=>void,
     context: WebPartContext,
     siteUrl: string,
-    modal: boolean
+    modal: boolean,
+    dates: number[],
+    month: string,
+    prev:(count:number)=>void,
+    next:(count:number)=>void,
+    count:number
 }
 
 
@@ -24,7 +29,15 @@ class HolidayNewModal extends React.Component<IholidaysMProps> {
           <ModalHeader toggle={this.props.toggle}>Add new holiday</ModalHeader>
           <ModalBody>
           <Button onClick={()=>this.props.createItem(ctx, siteUrl)}>Test</Button>
-          <HolydayNewForm context={this.props.context} siteUrl={this.props.siteUrl} createItem={this.props.createItem}>{this.props.children}</HolydayNewForm>
+          <HolydayNewForm 
+            context={this.props.context} 
+            siteUrl={this.props.siteUrl} 
+            createItem={this.props.createItem} 
+            dates={this.props.dates} 
+            month={this.props.month} 
+            prev={this.props.prev} 
+            next={this.props.next} 
+            count={this.props.count}>{this.props.children}</HolydayNewForm>
           </ModalBody>
           <ModalFooter>
             <Button color="primary" onClick={this.props.toggle}>Save</Button>{' '}

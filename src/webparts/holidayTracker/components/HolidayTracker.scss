@@ -34,6 +34,14 @@
   position: relative;
 }
 
+.modal-body{
+  .resized {
+    width: 73%;
+    margin: 0 auto;
+  }
+}
+
+
 .holidayTracker {
   .container {
     max-width: 700px;

@@ -4,7 +4,6 @@ import 'bootstrap/dist/css/bootstrap.css';
 
 import Iuser from '../../interfaces/Iusers';
 type Props = {
-    user: [Iuser],
     dates: number[],
     month: string,
     prev:(count:number)=>void,
@@ -33,7 +32,7 @@ class HolidayTableComponent extends React.Component<Props>{
                 <tbody>
                     <tr>
                         <td colSpan={3}>
-                            <div>
+                            <div className="resized">
                                 {this.props.dates.map((chose, i)=>{
                                     return(
                                     <Card key={i} type="button" className="customCard d-inline">
