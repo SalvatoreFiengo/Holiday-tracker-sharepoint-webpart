@@ -43,7 +43,10 @@ export interface IState {
   list: ISPList,
   listValues: any[],
   userName:string,
-  selectedDate:Date
+  selectedDate:Date,
+  from:string,
+  datePickerTo: boolean,
+  datePickerFrom: boolean
 };
 
 export interface ISPList {
@@ -108,7 +111,10 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
       },
       listValues: [],
       userName:"",
-      selectedDate:dates.now 
+      selectedDate:dates.now,
+      from:"",
+      datePickerTo: false,
+      datePickerFrom: false
     }
     this.toggle = this.toggle.bind(this);
     
@@ -119,7 +125,16 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
       modal: !prevState.modal
     }));
   }
-
+  toggleDataPickerTo=()=>{
+    this.setState(prevState=>({
+      datePickerTo: !prevState.datePickerTo
+    }));
+  }
+  toggleDataPickerFrom=()=>{
+    this.setState(prevState=>({
+      datePickerFrom: !prevState.datePickerFrom
+    }));
+  }
 
   public componentDidMount(): void {
     this._renderSpecificListAsync(this.state.context, this.state.siteUrl);
@@ -277,7 +292,15 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
       }
   
     }
-    
+
+    let handleDatePicker=(day:number, month:number)=>{
+      
+      this.setState({
+        selectedDate: new Date(new Date().getFullYear(), month, day)
+      }) 
+    }
+
+
     
     return (
       <div>
@@ -311,7 +334,7 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
         <section className="mt-5">
           <Row>
             <Col md="12">
-              <HolidayTableComponent prev={(count)=>prev(count)} next={next} count={this.state.selectedMonth} month={dates.months[this.state.selectedMonth-1]} dates={this.state.selectedWeek}/> 
+              <HolidayTableComponent prev={(count)=>prev(count)} next={next} count={this.state.selectedMonth} month={dates.months[this.state.selectedMonth-1]} dates={this.state.selectedWeek} handleDatePicker={handleDatePicker}/> 
             </Col>
           </Row>
           <Row>
@@ -336,21 +359,7 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
               
             </Col>
           </Row>
-          <HolidayNewModal
-            className=""
-            toggle={this.toggle} 
-            modal={this.state.modal} 
-            context={this.state.context} 
-            siteUrl={this.props.siteUrl} 
-            createItem={this._createItem} 
-            prev={(count)=>prev(count)} 
-            next={next} 
-            count={this.state.selectedMonth} 
-            month={dates.months[this.state.selectedMonth-1]} 
-            dates={this.state.selectedWeek}
->
-            {this.props.children}
-          </HolidayNewModal>
+          <HolidayNewModal className="" toggle={this.toggle} modal={this.state.modal} context={this.state.context} siteUrl={this.props.siteUrl} createItem={this._createItem} prev={(count)=>prev(count)} next={next} count={this.state.selectedMonth} month={dates.months[this.state.selectedMonth-1]} dates={this.state.selectedWeek} handleDatePicker={handleDatePicker} dateChosen={this.state.selectedDate} datePickerTo={this.state.datePickerTo} toggleDataPickerTo={this.toggleDataPickerTo} datePickerFrom={this.state.datePickerFrom} toggleDataPickerFrom={this.toggleDataPickerFrom}> {this.props.children}</HolidayNewModal>
         </section>
       </div>
     );

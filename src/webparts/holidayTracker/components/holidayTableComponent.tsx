@@ -2,14 +2,16 @@ import * as React from 'react';
 import {Table, Button, Card} from 'reactstrap';
 import 'bootstrap/dist/css/bootstrap.css';
 
-import Iuser from '../../interfaces/Iusers';
+
 type Props = {
     dates: number[],
     month: string,
     prev:(count:number)=>void,
     next:(count:number)=>void,
-    count:number
+    count:number,
+    handleDatePicker: (date, month,key?)=>void
 };
+
 class HolidayTableComponent extends React.Component<Props>{
     render(){
         return(
@@ -35,7 +37,7 @@ class HolidayTableComponent extends React.Component<Props>{
                             <div className="resized">
                                 {this.props.dates.map((chose, i)=>{
                                     return(
-                                    <Card key={i} type="button" className="customCard d-inline">
+                                    <Card key={i} onClick={()=>this.props.handleDatePicker(chose, this.props.count-1)} type="button" className="customCard d-inline">
                                         {chose}
                                     </Card>)
                                     })

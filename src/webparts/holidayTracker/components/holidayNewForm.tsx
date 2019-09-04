@@ -1,7 +1,9 @@
 import * as React from 'react';
-import { Button, Form, FormGroup, Label, Input, FormText } from 'reactstrap';
+import { Button, Form, FormGroup, Label, Input, FormText, Collapse } from 'reactstrap';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import HolidayTableComponent from './holidayTableComponent';
+
+import dates from '../../variables/dates';
 
 interface InewFormProps {
   createItem: (ctx, siteUrl)=>void,
@@ -11,14 +13,19 @@ interface InewFormProps {
   month: string,
   prev:(count:number)=>void,
   next:(count:number)=>void,
-  count:number
+  count:number,
+  dateChosen:Date,
+  handleDatePicker:(date, number) =>void,
+  datePickerTo: boolean,
+  datePickerFrom: boolean,
+  toggleDataPickerTo: ()=>void,
+  toggleDataPickerFrom: ()=>void
 }
 
 interface IformState {
-
-    [x:string]: string
-  
+  [x:string]: string  
 }
+
 
 export default class HolidayForm extends React.Component<InewFormProps, IformState> {
   inputNode: any;
@@ -26,26 +33,28 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
     super(props);
 
     this.state = {
-
         agentEmail: "agent email",
         leaveSelect: "",
         comments: "",
         lobSelect:"",
-      
+        from:"",
+        to:"", 
+ 
     };
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
 
   handleChange= (event)=> {
-
+    
     let key:string = event.target.id;
     let value:string = event.target.value
     this.setState({
       [key]:value
-    })
+    });
 
   }
+
 
   handleSubmit(event) {
     const request = {
@@ -60,9 +69,20 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
     event.preventDefault();
   }
 
+  handleDatePickerForm=(date,month)=>{
+    const selected = new Date(new Date().getFullYear(), month, date).toString().slice(0,15)
+    this.setState({
+      from: selected
+    })
+  }
+  handleDatePickerTo=(date,month)=>{
+    const selected = new Date(new Date().getFullYear(), month, date).toString().slice(0,15)
+    this.setState({
+      to: selected
+    })
+  }
   render() {
-    let ctx = this.props.context
-    let siteUrl = this.props.siteUrl
+
     return (
       <Form onSubmit={this.handleSubmit}>
         <FormGroup>
@@ -78,8 +98,21 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
             <option>Charity Leave</option>
             <option>Study Leave</option>
           </Input>
+        </FormGroup>    
+        <FormGroup>
+        <Button onClick={()=>this.props.toggleDataPickerFrom()} id="from" className="d-inline-block">From: </Button>
+          <span className="d-block border text-center w-50 mx-auto">{this.state.from}</span>
+          <Collapse isOpen={this.props.datePickerFrom}>
+            <HolidayTableComponent prev={(count)=>this.props.prev(count)} next={this.props.next} count={this.props.count} month={this.props.month} dates={this.props.dates} handleDatePicker={this.handleDatePickerForm}></HolidayTableComponent>
+         </Collapse>
         </FormGroup>
-        <HolidayTableComponent prev={(count)=>this.props.prev(count)} next={this.props.next} count={this.props.count} month={this.props.month} dates={this.props.dates}></HolidayTableComponent>
+        <FormGroup>
+          <Button onClick={()=>this.props.toggleDataPickerTo()} id="to" className="d-inline-block">To: </Button>
+          <span className="d-inline-block border text-center w-50 mx-auto">{this.state.to}</span>
+          <Collapse isOpen={this.props.datePickerTo}>
+            <HolidayTableComponent prev={(count)=>this.props.prev(count)} next={this.props.next} count={this.props.count} month={this.props.month} dates={this.props.dates} handleDatePicker={this.handleDatePickerTo}></HolidayTableComponent>
+          </Collapse>
+        </FormGroup>
         <FormGroup>
           <Label for="lob">LOB</Label>
           <Input type="select" name="selectLob" id="lobSelect" value={this.state.lobSelect} onChange={this.handleChange}>

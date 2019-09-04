@@ -14,7 +14,13 @@ interface IholidaysMProps{
     month: string,
     prev:(count:number)=>void,
     next:(count:number)=>void,
-    count:number
+    count:number,
+    dateChosen:Date,
+    handleDatePicker:(date,month,key?)=>void,
+    datePickerTo:boolean,
+    datePickerFrom: boolean,
+    toggleDataPickerTo: ()=>void,
+    toggleDataPickerFrom: ()=>void
 }
 
 
@@ -37,7 +43,14 @@ class HolidayNewModal extends React.Component<IholidaysMProps> {
             month={this.props.month} 
             prev={this.props.prev} 
             next={this.props.next} 
-            count={this.props.count}>{this.props.children}</HolydayNewForm>
+            count={this.props.count}
+            handleDatePicker = {this.props.handleDatePicker}
+            dateChosen={this.props.dateChosen}
+            datePickerTo={this.props.datePickerTo}
+            datePickerFrom={this.props.datePickerFrom}
+            toggleDataPickerTo={this.props.toggleDataPickerTo}
+            toggleDataPickerFrom={this.props.toggleDataPickerFrom}
+            >{this.props.children}</HolydayNewForm>
           </ModalBody>
           <ModalFooter>
             <Button color="primary" onClick={this.props.toggle}>Save</Button>{' '}
