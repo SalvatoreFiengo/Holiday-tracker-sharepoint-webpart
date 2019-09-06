@@ -1,5 +1,11 @@
 @import '~@microsoft/sp-office-ui-fabric-core/dist/sass/SPFabricCore.scss';
 
+.dtfix {
+  display: block;
+  float: left;
+  min-width: 100px;
+}
+
 .customCard {
   width: 20px;
   height: 20px;
@@ -112,7 +118,7 @@
       vertical-align: top;
       display: inline-block;
     }
-    
+
 
   }
 }

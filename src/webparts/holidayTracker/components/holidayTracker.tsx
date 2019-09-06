@@ -79,7 +79,7 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
       dates: dates,
       weeks: dates.weeksByMonth(dates.firstLastDayOfMonth(1),dates.firstLastDayOfMonth(0),true),
       modal: false,
-      selectedWeek: dates.weeksByMonth(dates.firstLastDayOfMonth(1,dates.now.getMonth()),dates.firstLastDayOfMonth(0,dates.now.getMonth()),true),
+      selectedWeek: dates.weeksByMonth(dates.firstLastDayOfMonth(1,dates.now.getMonth()+1),dates.firstLastDayOfMonth(0,dates.now.getMonth()+1),true),
       weekIsSelected: false,
       selectedMonth:  dates.now.getMonth()+1,
       count:dates.now.getMonth(),
@@ -124,6 +124,7 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
     this.setState(prevState=>({
       modal: !prevState.modal
     }));
+    this._renderSpecificListAsync(this.state.context, this.state.siteUrl)
   }
   toggleDataPickerTo=()=>{
     this.setState(prevState=>({
@@ -177,17 +178,18 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
         });
   }
 
-  _createItem(ctx, siteUrl):Promise<void> {
+  _createItem(ctx, siteUrl, request):Promise<void> {
     const body: string= JSON.stringify({
       '__metadata': {
         'type': 'SP.Data.Ooo_x005f_testListItem'
       },
-      'Title':"email",
-      'request_type':'request_type',
-      'from': 'from',
-      'to': 'to',
-      'approved': 'approved',
-      'lob':'lob'
+      'Title':request.leaveSelect,
+      'agentName':request.agentName,
+      'email':request.email,
+      'from': request.from,
+      'to': request.to,
+      'lob':request.lobSelect,
+      'comment':request.comments
     }) 
 
     return ctx.spHttpClient.post(siteUrl+`/_api/web/lists/getbytitle('ooo_test')/items`,
@@ -301,7 +303,8 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
     }
 
 
-    
+    const agentEmail = this.props.context.pageContext.user.email
+    const agentName = this.props.context.pageContext.user.displayName
     return (
       <div>
         <header>
@@ -339,27 +342,60 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
           </Row>
           <Row>
             <Col md="12">
-              <Button onClick={()=>{}}>Refresh lists</Button>
-
               {this.state.list!== undefined? this.state.listValues.map(item=>{
-                if(checkDates(item.from, item.to, this.state.selectedDate.toString())){
-                
+                if(checkDates(item.from, item.to, this.state.selectedDate.toString())
+                && item.email === this.props.context.pageContext.user.email){
+                  
                 return <ul className="list">
-                  <li className="listItem">
-                    <ul className="list">
-                    <li className="listItem">Request type: {item.Title} </li>
-                      <li className="listItem">E-mail: {item.email}, Agent Name: {item.sykj} </li>
-
-                      <li>Out Of Office from: {new Date(item.from).getDate()} to: {new Date(item.to).getDate()}</li>
-                      
-                    </ul>
-                  </li>
-                </ul>}else{return null}
+                        <li className="listItem">
+                          <dl className={item.approved?"border-left border-bottom border-success list":"border-left border-bottom border-danger list"}>
+                            <dt className="dtfix"> 
+                              <p><em>Request type:</em></p>
+                            </dt>
+                            <dd>
+                              <p>{item.Title}</p>
+                            </dd>
+                            <dt className="dtfix">
+                              <p><em> E-mail:</em></p> 
+                            </dt>
+                            <dd><p>{item.email}</p></dd>
+                            <dt className="dtfix">
+                              <p><em>Agent Name:</em></p>
+                            </dt>
+                            <dd><p> {item.sykj}</p></dd>
+                            <dt className="dtfix"><p><em>Out Of Office from:</em></p></dt> 
+                            <dd><p>{new Date(item.from).getDate()} of {this.state.dates.months[new Date(item.from).getMonth()]}</p></dd> 
+                            
+                            <dt className="dtfix"><p><em>to:</em></p></dt> 
+                            <dd><p>{new Date(item.to).getDate()} of {this.state.dates.months[new Date(item.to).getMonth()]}</p></dd>
+                            
+                          </dl>
+                          <Button className="bg-danger">Delete</Button>
+                        </li>
+                      </ul>
+                }else{return null}
               }):<h2>No data available, please refresh</h2>}
               
             </Col>
           </Row>
-          <HolidayNewModal className="" toggle={this.toggle} modal={this.state.modal} context={this.state.context} siteUrl={this.props.siteUrl} createItem={this._createItem} prev={(count)=>prev(count)} next={next} count={this.state.selectedMonth} month={dates.months[this.state.selectedMonth-1]} dates={this.state.selectedWeek} handleDatePicker={handleDatePicker} dateChosen={this.state.selectedDate} datePickerTo={this.state.datePickerTo} toggleDataPickerTo={this.toggleDataPickerTo} datePickerFrom={this.state.datePickerFrom} toggleDataPickerFrom={this.toggleDataPickerFrom}> {this.props.children}</HolidayNewModal>
+          <HolidayNewModal 
+            className="" 
+            toggle={this.toggle} 
+            modal={this.state.modal} 
+            context={this.state.context} 
+            siteUrl={this.props.siteUrl} 
+            createItem={this._createItem} 
+            prev={(count)=>prev(count)} 
+            next={next} 
+            count={this.state.selectedMonth} 
+            month={dates.months[this.state.selectedMonth-1]} 
+            dates={this.state.selectedWeek} 
+            handleDatePicker={handleDatePicker} 
+            dateChosen={this.state.selectedDate} 
+            datePickerTo={this.state.datePickerTo} 
+            toggleDataPickerTo={this.toggleDataPickerTo} 
+            datePickerFrom={this.state.datePickerFrom} 
+            toggleDataPickerFrom={this.toggleDataPickerFrom}> {this.props.children}</HolidayNewModal>
         </section>
       </div>
     );
