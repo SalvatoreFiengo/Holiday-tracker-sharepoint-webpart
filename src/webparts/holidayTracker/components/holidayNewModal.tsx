@@ -6,7 +6,6 @@ import HolydayNewForm from './holidayNewForm'
 interface IholidaysMProps{
     className: any,
     toggle: ()=>void,
-    createItem: (ctx, siteUrl, request)=>void,
     context: WebPartContext,
     siteUrl: string,
     modal: boolean,
@@ -21,14 +20,16 @@ interface IholidaysMProps{
     datePickerFrom: boolean,
     toggleDataPickerTo: ()=>void,
     toggleDataPickerFrom: ()=>void,
+    checkRequest: (request:any)=>boolean,
+    getLists: (response)=>void
+
 }
 
 
 class HolidayNewModal extends React.Component<IholidaysMProps> {
 
   render() {
-    let ctx = this.props.context
-    let siteUrl = this.props.siteUrl
+
     return (
       <div>
         <Modal isOpen={this.props.modal} toggle={this.props.toggle} className={this.props.className}>
@@ -37,7 +38,6 @@ class HolidayNewModal extends React.Component<IholidaysMProps> {
           <HolydayNewForm 
             context={this.props.context} 
             siteUrl={this.props.siteUrl} 
-            createItem={this.props.createItem} 
             dates={this.props.dates} 
             month={this.props.month} 
             prev={this.props.prev} 
@@ -50,6 +50,8 @@ class HolidayNewModal extends React.Component<IholidaysMProps> {
             toggleDataPickerTo={this.props.toggleDataPickerTo}
             toggleDataPickerFrom={this.props.toggleDataPickerFrom}
             toggle={this.props.toggle}
+            checkRequest={this.props.checkRequest}
+            getLists={this.props.getLists}
             >{this.props.children}</HolydayNewForm>
           </ModalBody>
         </Modal>

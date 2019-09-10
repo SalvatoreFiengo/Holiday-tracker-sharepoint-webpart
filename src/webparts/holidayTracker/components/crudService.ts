@@ -36,6 +36,7 @@ export let _createItem=(ctx, siteUrl, request):Promise<void> =>{
         'type': 'SP.Data.Ooo_x005f_testListItem'
       },
       'Title':request.leaveSelect,
+      'sykj':request.agentName,
       'email':request.email,
       'from': request.from,
       'to': request.to,

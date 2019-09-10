@@ -4,10 +4,7 @@ import { Button, Form, FormGroup, Label, Input, FormText, Collapse } from 'react
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import HolidayTableComponent from './holidayTableComponent';
 
-import dates from '../../variables/dates';
-
 interface InewFormProps {
-  createItem: (ctx, siteUrl, request)=>void,
   context: WebPartContext,
   siteUrl:string,
   dates: number[],
@@ -22,6 +19,8 @@ interface InewFormProps {
   toggleDataPickerTo: ()=>void,
   toggleDataPickerFrom: ()=>void
   toggle:()=>void,
+  checkRequest:(request:any)=>boolean,
+  getLists:(response)=>void
 }
 
 interface IformState {
@@ -35,8 +34,8 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
     super(props);
 
     this.state = {
-        agentEmail: this.props.context.pageContext.user.email,
-        agentName: this.props.context.pageContext.user.displayName,
+        agentEmail: "",
+        agentName: "",
         leaveSelect: "",
         comments: "",
         lobSelect:"",
@@ -47,11 +46,19 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
-
+  componentDidMount(){
+    if(this.props.context.pageContext !== undefined){
+      this.setState({
+        agentEmail: this.props.context.pageContext.user.email,
+        agentName: this.props.context.pageContext.user.displayName,
+      })
+    }
+  }
   handleChange= (event)=> {
     
     let key:string = event.target.id;
     let value:string = event.target.value
+    console.log(key+" is "+value)
     this.setState({
       [key]:value
     });
@@ -62,6 +69,7 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
   handleSubmit(event) {
     event.preventDefault();
     const request = {
+      agentName: event.target.agentName.value,
       email : event.target.email.value,
       leaveSelect: event.target.selectReqType.value,
       lobSelect: event.target.selectLob.value,
@@ -70,11 +78,13 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
       to: new Date(this.state.to)
 
     }
-    this.props.createItem(this.props.context,this.props.siteUrl,request)
-    
+    this.props.checkRequest(request)
+    if(this.props.checkRequest(request)){
+      crud._createItem(this.props.context,this.props.siteUrl,request)
+    }
     this.props.toggle()
-    
-
+    crud._getSpecificList(this.props.context,this.props.siteUrl).then(res=>this.props.getLists(res))
+  
   }
 
   handleDatePickerForm=(date,month)=>{
@@ -109,7 +119,7 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
       <Form onSubmit={this.handleSubmit}>
         <FormGroup>
           <Label for="agentName">Agent Name</Label>
-          <Input type="email" name="email" id="agentName" placeholder="name" value={this.state.agentName} onChange={this.handleChange}/>
+          <Input type="text" name="agentName" id="agentName" placeholder="name" value={this.state.agentName} onChange={this.handleChange}/>
         </FormGroup>
         <FormGroup>
           <Label for="agentEmail">Agent Requesting Holidays (E-mail)</Label>

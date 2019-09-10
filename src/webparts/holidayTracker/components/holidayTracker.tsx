@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import {Navbar, NavbarBrand, Nav, NavItem, NavLink, Row, Col, Card, Button} from 'reactstrap';
+import {Navbar, NavbarBrand, Nav, NavItem, NavLink, Table,Row, Col, Card, Button} from 'reactstrap';
 import './HolidayTracker.scss'
 import Iuser from '../../interfaces/Iusers';
 import Idates from '../../interfaces/Idates';
@@ -12,6 +12,7 @@ import HolidayNewModal from '../components/holidayNewModal';
 import dates from '../../variables/dates';
 import usersMock from '../../variables/usersMock';
 import MockHttpClient from './mockLists';
+import * as crud from './crudService'
 
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import {
@@ -46,7 +47,9 @@ export interface IState {
   selectedDate:Date,
   from:string,
   datePickerTo: boolean,
-  datePickerFrom: boolean
+  datePickerFrom: boolean,
+  request:{},
+
 };
 
 export interface ISPList {
@@ -114,17 +117,19 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
       selectedDate:dates.now,
       from:"",
       datePickerTo: false,
-      datePickerFrom: false
+      datePickerFrom: false,
+      request:{},
     }
     this.toggle = this.toggle.bind(this);
-    
+    this.checkAgainstPreviousRequests=this.checkAgainstPreviousRequests.bind(this);
+    this.getSpecificList= this.getSpecificList.bind(this);
   };
 
   toggle() {
     this.setState(prevState=>({
       modal: !prevState.modal
     }));
-    this._renderSpecificListAsync(this.state.context, this.state.siteUrl)
+
   }
   toggleDataPickerTo=()=>{
     this.setState(prevState=>({
@@ -141,71 +146,38 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
     this._renderSpecificListAsync(this.state.context, this.state.siteUrl);
   }
 
-  private _getMockListData(): Promise<ISPLists> {
-    return MockHttpClient.get()
-      .then((data: ISPList[]) => {
-        var listData: ISPLists = {value: data};
-        return listData;
-      }) as Promise<ISPLists>;
-  }
-
-  getSpLists=(response)=>{
-    this.setState({
-      lists: response,
-    }, function(){console.log("list updated")})
-  }
-
-  getSpecificList=(response)=>{
-    let values=Object.keys(response.value).map(item=>response.value[item])
-    this.setState({
-      listValues: values 
-    }, function(){console.log("listValues -- ")})
-  }
+  checkAgainstPreviousRequests(request):boolean {
+    for (let i=0; i<this.state.listValues.length;i++){
+        let item = this.state.listValues[i];
+        if(request.sykj === item.sykj || request.email === item.email){
+          const monthFrom = new Date(request.from).getMonth();
+          const monthTo= new Date(request.to).getMonth();
+          const itemMonthFrom = new Date(item.from).getMonth();
+          const itemMonthTo = new Date(item.to).getMonth();
+          if(monthFrom>=itemMonthFrom && monthFrom<=itemMonthTo || monthTo>=itemMonthFrom && monthTo<=itemMonthTo){
+            alert("Request already submitted");
+            return false;
   
-  _getListData(ctx, siteUrl): Promise<ISPLists> {
-    if(ctx !== undefined){
-      return ctx.spHttpClient.get(siteUrl + `/_api/web/lists?$filter=Hidden eq false`, SPHttpClient.configurations.v1)
-        .then((response: SPHttpClientResponse) => {
-           return response.json()
-        });
+          }
+          else{
+            this.setState({
+              request: request,
+            })
+            console.log("ok done sure!")
+            return true;
+          }
+        }
+      }
     }
-  }
 
-  _getSpecificList(ctx, siteUrl): Promise<ISPList> {
-    return ctx.spHttpClient.get(siteUrl + `/_api/web/Lists/GetByTitle('ooo_test')/items`, SPHttpClient.configurations.v1)
-        .then((response: SPHttpClientResponse) => {
-            return response.json()
-        });
-  }
-
-  _createItem(ctx, siteUrl, request):Promise<void> {
-    const body: string= JSON.stringify({
-      '__metadata': {
-        'type': 'SP.Data.Ooo_x005f_testListItem'
-      },
-      'Title':request.leaveSelect,
-      'agentName':request.agentName,
-      'email':request.email,
-      'from': request.from,
-      'to': request.to,
-      'lob':request.lobSelect,
-      'comment':request.comments
-    }) 
-
-    return ctx.spHttpClient.post(siteUrl+`/_api/web/lists/getbytitle('ooo_test')/items`,
-    SPHttpClient.configurations.v1,
-    {
-      headers: {
-        'Accept': 'application/json;odata=nometadata',
-        'Content-type': 'application/json;odata=verbose',
-        'odata-version': ''
-      },
-      body: body
-    }).then((response: SPHttpClientResponse): Promise<any>=>{
-      return response.json();
-    })
-  }
-  
+  // private _getMockListData(): Promise<ISPLists> {
+  //   return MockHttpClient.get()
+  //     .then((data: ISPList[]) => {
+  //       var listData: ISPLists = {value: data};
+  //       return listData;
+  //     }) as Promise<ISPLists>;
+  // }
+   
   // private _renderListAsync(): void {
   //   // Local environment
   //   if (Environment.type === EnvironmentType.Local) {
@@ -223,8 +195,23 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
   //   }
   // }
 
+  getSpLists=(response)=>{
+    this.setState({
+      lists: response,
+    }, function(){console.log("list updated")})
+  }
+
+  getSpecificList=(response)=>{
+    let values=Object.keys(response.value).map(item=>response.value[item])
+    this.setState({
+      listValues: values 
+    }, function(){console.log("listValues -- ")})
+  }
+  
+
+
   private _renderSpecificListAsync(ctx, siteUrl): void {
-    this._getSpecificList(ctx, siteUrl).then((res)=>{
+    crud._getSpecificList(ctx, siteUrl).then((res)=>{
       this.getSpecificList(res)
     })
   }
@@ -303,8 +290,6 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
     }
 
 
-    const agentEmail = this.props.context.pageContext.user.email
-    const agentName = this.props.context.pageContext.user.displayName
     return (
       <div>
         <header>
@@ -348,29 +333,45 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
                   
                 return <ul className="list">
                         <li className="listItem">
-                          <dl className={item.approved?"border-left border-bottom border-success list":"border-left border-bottom border-danger list"}>
-                            <dt className="dtfix"> 
-                              <p><em>Request type:</em></p>
-                            </dt>
-                            <dd>
-                              <p>{item.Title}</p>
-                            </dd>
-                            <dt className="dtfix">
-                              <p><em> E-mail:</em></p> 
-                            </dt>
-                            <dd><p>{item.email}</p></dd>
-                            <dt className="dtfix">
-                              <p><em>Agent Name:</em></p>
-                            </dt>
-                            <dd><p> {item.sykj}</p></dd>
-                            <dt className="dtfix"><p><em>Out Of Office from:</em></p></dt> 
-                            <dd><p>{new Date(item.from).getDate()} of {this.state.dates.months[new Date(item.from).getMonth()]}</p></dd> 
-                            
-                            <dt className="dtfix"><p><em>to:</em></p></dt> 
-                            <dd><p>{new Date(item.to).getDate()} of {this.state.dates.months[new Date(item.to).getMonth()]}</p></dd>
-                            
-                          </dl>
-                          <Button className="bg-danger">Delete</Button>
+                          <div className={item.approved?"border-left border-bottom border-success list":"border-left border-bottom border-danger list"}>
+                            <Table>
+                              <thead>
+                                <th>Request:</th>
+                                <th>E-mail:</th>
+                                <th>Agent Name:</th>
+                                <th>from:</th>
+                                <th>to:</th>
+                              </thead>
+                              <tbody>
+                                <tr>
+                                  <td>
+                                    <p>{item.Title}</p>
+                                  </td>
+                                  <td>
+                                    <p>{item.email}</p>
+                                  </td>
+                                  <td>
+                                    <p>{item.sykj}</p>
+                                  </td>
+                                  <td>
+                                    <p>{new Date(item.to).getDate()}-{this.state.dates.months[new Date(item.to).getMonth()]}</p>
+                                  </td>
+                                  <td>
+                                    <p>{new Date(item.to).getDate()}-{this.state.dates.months[new Date(item.to).getMonth()]}</p>
+                                  </td>
+                                </tr>
+                              </tbody>
+                              <tfoot >
+                                <tr >
+                                  <td colSpan={2}><Button className="bg-warning">Delete</Button></td>
+                                  <td></td>
+                                  <td></td>
+                                </tr>
+                                
+                              </tfoot>
+                            </Table>
+                          </div>
+                          
                         </li>
                       </ul>
                 }else{return null}
@@ -384,7 +385,6 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
             modal={this.state.modal} 
             context={this.state.context} 
             siteUrl={this.props.siteUrl} 
-            createItem={this._createItem} 
             prev={(count)=>prev(count)} 
             next={next} 
             count={this.state.selectedMonth} 
@@ -395,7 +395,10 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
             datePickerTo={this.state.datePickerTo} 
             toggleDataPickerTo={this.toggleDataPickerTo} 
             datePickerFrom={this.state.datePickerFrom} 
-            toggleDataPickerFrom={this.toggleDataPickerFrom}> {this.props.children}</HolidayNewModal>
+            toggleDataPickerFrom={this.toggleDataPickerFrom}
+            checkRequest={this.checkAgainstPreviousRequests}
+            getLists={this.getSpecificList}
+            > {this.props.children}</HolidayNewModal>
         </section>
       </div>
     );
