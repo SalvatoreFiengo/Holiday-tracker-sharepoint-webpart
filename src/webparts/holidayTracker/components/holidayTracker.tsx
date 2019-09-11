@@ -26,31 +26,31 @@ import {
 
 
 export interface IState {
-  context: WebPartContext,
-  siteUrl: string,
-  error: string,
-  webPartData:IHelloUserPart["data"],
-  isWDataValid:IHelloUserPart["isValid"],
-  user:[Iuser],
-  dates:Idates,
-  weeks:number[],
-  modal: boolean,
-  selectedWeek: number[],
-  weekIsSelected:boolean,
-  selectedMonth:number,
-  count:number,
-  listLoaded: boolean,
-  lists: [ISPList],
-  list: ISPList,
-  listValues: any[],
-  userName:string,
-  selectedDate:Date,
-  from:string,
-  datePickerTo: boolean,
-  datePickerFrom: boolean,
-  request:{},
+  context: WebPartContext;
+  siteUrl: string;
+  error: string;
+  webPartData:IHelloUserPart["data"];
+  isWDataValid:IHelloUserPart["isValid"];
+  user:[Iuser];
+  dates:Idates;
+  weeks:number[];
+  modal: boolean;
+  selectedWeek: number[];
+  weekIsSelected:boolean;
+  selectedMonth:number;
+  count:number;
+  listLoaded: boolean;
+  lists: [ISPList];
+  list: ISPList;
+  listValues: any[];
+  userName:string;
+  selectedDate:Date;
+  from:string;
+  datePickerTo: boolean;
+  datePickerFrom: boolean;
+  request:{};
 
-};
+}
 
 export interface ISPList {
   request_type: string;
@@ -123,20 +123,20 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
     this.toggle = this.toggle.bind(this);
     this.checkAgainstPreviousRequests=this.checkAgainstPreviousRequests.bind(this);
     this.getSpecificList= this.getSpecificList.bind(this);
-  };
+  }
 
-  toggle() {
+  private toggle() {
     this.setState(prevState=>({
       modal: !prevState.modal
     }));
 
   }
-  toggleDataPickerTo=()=>{
+  public toggleDataPickerTo=()=>{
     this.setState(prevState=>({
       datePickerTo: !prevState.datePickerTo
     }));
   }
-  toggleDataPickerFrom=()=>{
+  public toggleDataPickerFrom=()=>{
     this.setState(prevState=>({
       datePickerFrom: !prevState.datePickerFrom
     }));
@@ -146,7 +146,7 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
     this._renderSpecificListAsync(this.state.context, this.state.siteUrl);
   }
 
-  checkAgainstPreviousRequests(request):boolean {
+  public checkAgainstPreviousRequests(request):boolean {
     for (let i=0; i<this.state.listValues.length;i++){
         let item = this.state.listValues[i];
         if(request.sykj === item.sykj || request.email === item.email){
@@ -195,34 +195,42 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
   //   }
   // }
 
-  getSpLists=(response)=>{
+  private getSpLists=(response)=>{
     this.setState({
       lists: response,
-    }, function(){console.log("list updated")})
+    }, ()=>{console.log("list updated")})
   }
 
-  getSpecificList=(response)=>{
-    let values=Object.keys(response.value).map(item=>response.value[item])
+  public getSpecificList=(response)=>{
+    let values=Object.keys(response.value).map(item=>response.value[item]);
     this.setState({
       listValues: values 
-    }, function(){console.log("listValues -- ")})
+    }, ()=>{console.log("-UI updated with items- ")});
   }
   
+  private approveItem = (ctx, siteUrl, id, approval):Promise<ISPList>=>{
 
-
-  private _renderSpecificListAsync(ctx, siteUrl): void {
-    crud._getSpecificList(ctx, siteUrl).then((res)=>{
-      this.getSpecificList(res)
-    })
+    return crud._updateItemApproval(ctx, siteUrl, id, approval)
   }
 
-  render(){
+  private deleteItem=(ctx, siteUrl, id):Promise<ISPList>=>{
+
+    return crud._deleteItem(ctx, siteUrl, id);
+  }
+
+  public _renderSpecificListAsync(ctx, siteUrl): void {
+    crud._getSpecificList(ctx, siteUrl).then((res)=>{
+      this.getSpecificList(res)
+    });
+  }
+
+  public render(){
 
     let prev=(count:number)=>{
       let counter=count;
       counter--
 
-      if(counter==0)return
+      if(counter==0)return;
       this.setState({
         count:counter,
         selectedMonth:counter,
@@ -363,8 +371,10 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
                               </tbody>
                               <tfoot >
                                 <tr >
-                                  <td colSpan={2}><Button className="bg-warning">Delete</Button></td>
-                                  <td></td>
+                                  <td colSpan={2}><Button disabled={item.approved?true:false} className="bg-warning" onClick={()=>this.deleteItem(this.state.context, this.state.siteUrl, item.Id).then(res=>this.getSpecificList(res)) } >Delete</Button></td>
+                                  <td colSpan={2}>
+                                  {item.approved?<p className="text-success">Already Approved</p>:<Button className="bg-success" onClick={()=>this.approveItem(this.state.context, this.state.siteUrl, item.Id, true).then(res=>this.getSpecificList(res))}>Approve</Button>} 
+                                  </td>
                                   <td></td>
                                 </tr>
                                 

@@ -5,31 +5,31 @@ import { WebPartContext } from '@microsoft/sp-webpart-base';
 import HolidayTableComponent from './holidayTableComponent';
 
 interface InewFormProps {
-  context: WebPartContext,
-  siteUrl:string,
-  dates: number[],
-  month: string,
-  prev:(count:number)=>void,
-  next:(count:number)=>void,
-  count:number,
-  dateChosen:Date,
-  handleDatePicker:(date, number) =>void,
-  datePickerTo: boolean,
-  datePickerFrom: boolean,
-  toggleDataPickerTo: ()=>void,
-  toggleDataPickerFrom: ()=>void
-  toggle:()=>void,
-  checkRequest:(request:any)=>boolean,
-  getLists:(response)=>void
+  context: WebPartContext;
+  siteUrl:string;
+  dates: number[];
+  month: string;
+  prev:(count:number)=>void;
+  next:(count:number)=>void;
+  count:number;
+  dateChosen:Date;
+  handleDatePicker:(date, number) =>void;
+  datePickerTo: boolean;
+  datePickerFrom: boolean;
+  toggleDataPickerTo: ()=>void;
+  toggleDataPickerFrom: ()=>void;
+  toggle:()=>void;
+  checkRequest:(request:any)=>boolean;
+  getLists:(response)=>void;
 }
 
 interface IformState {
-  [x:string]: string  
+  [x:string]: string;  
 }
 
 
 export default class HolidayForm extends React.Component<InewFormProps, IformState> {
-  inputNode: any;
+  public inputNode: any;
   constructor(props){
     super(props);
 
@@ -46,19 +46,19 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
     this.handleChange = this.handleChange.bind(this);
     this.handleSubmit = this.handleSubmit.bind(this);
   }
-  componentDidMount(){
+  public componentDidMount(){
     if(this.props.context.pageContext !== undefined){
       this.setState({
         agentEmail: this.props.context.pageContext.user.email,
         agentName: this.props.context.pageContext.user.displayName,
-      })
+      });
     }
   }
-  handleChange= (event)=> {
+  private handleChange= (event)=> {
     
     let key:string = event.target.id;
-    let value:string = event.target.value
-    console.log(key+" is "+value)
+    let value:string = event.target.value;
+    console.log(key+" is "+value);
     this.setState({
       [key]:value
     });
@@ -66,7 +66,7 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
   }
 
 
-  handleSubmit(event) {
+  private handleSubmit(event) {
     event.preventDefault();
     const request = {
       agentName: event.target.agentName.value,
@@ -78,43 +78,43 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
       to: new Date(this.state.to)
 
     }
-    this.props.checkRequest(request)
+    this.props.checkRequest(request);
     if(this.props.checkRequest(request)){
-      crud._createItem(this.props.context,this.props.siteUrl,request)
+      crud._createItem(this.props.context,this.props.siteUrl,request).then(res=>this.props.getLists(res));
     }
-    this.props.toggle()
-    crud._getSpecificList(this.props.context,this.props.siteUrl).then(res=>this.props.getLists(res))
+    this.props.toggle();
+
   
   }
 
-  handleDatePickerForm=(date,month)=>{
-    const selected = new Date(new Date().getFullYear(), month, date).toISOString()
+  public handleDatePickerFrom=(date,month)=>{
+    const selected = new Date(new Date().getFullYear(), month, date).toISOString();
     this.setState({
       from: selected
-    })
+    });
   }
-  handleDatePickerTo=(date,month)=>{
-    const selected = new Date(new Date().getFullYear(), month, date).toISOString()
+  public handleDatePickerTo=(date,month)=>{
+    const selected = new Date(new Date().getFullYear(), month, date).toISOString();
     
     this.setState({
       to: selected,
       dateValidity:this.checkDateValidity(selected, this.state.from)
-    })
+    });
   }
 
-  checkDateValidity=(from, to)=>{
-    console.log(new Date(from).getDate() +" is less than "+new Date(to).getDate())
+  private checkDateValidity=(from, to)=>{
+    console.log(new Date(from).getDate() +" is less than "+new Date(to).getDate());
     if(from === "" || to === ""){
-      return 'text-warning'
+      return 'text-warning';
     }
     if (new Date(from).getDate()< new Date(to).getDate()){
-      return 'text-danger'
+      return 'text-danger';
     }
     else{
-      return 'text-success'
+      return 'text-success';
     }
   }
-  render() {
+  public render() {
     return (
       <Form onSubmit={this.handleSubmit}>
         <FormGroup>
@@ -139,8 +139,8 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
         <Button onClick={()=>this.props.toggleDataPickerFrom()} id="from" className="d-inline-block">From: </Button>
           <span className="d-inline-block border text-center w-50 ml-5"> <p className={this.state.dateValidity}>{this.state.from.slice(0,15)}</p></span>
           <Collapse isOpen={this.props.datePickerFrom}>
-            <HolidayTableComponent prev={(count)=>this.props.prev(count)} next={this.props.next} count={this.props.count} month={this.props.month} dates={this.props.dates} handleDatePicker={this.handleDatePickerForm}></HolidayTableComponent>
-         </Collapse>
+            <HolidayTableComponent prev={(count)=>this.props.prev(count)} next={this.props.next} count={this.props.count} month={this.props.month} dates={this.props.dates} handleDatePicker={this.handleDatePickerFrom}></HolidayTableComponent>
+          </Collapse>
         </FormGroup>
         <FormGroup>
           <Button onClick={()=>this.props.toggleDataPickerTo()} id="to" className="d-inline-block">To: </Button>
