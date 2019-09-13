@@ -1,4 +1,4 @@
-import Iuser from "../interfaces/Iusers"
+import Iuser from "../interfaces/Iusers";
 const usersMock:Iuser={
     id:"1",
     name: "name",
@@ -7,5 +7,5 @@ const usersMock:Iuser={
     to:[0,0],
     approver:"approverName",
     approverEmail:"approverName@email.com"
-}
+};
 export default usersMock;

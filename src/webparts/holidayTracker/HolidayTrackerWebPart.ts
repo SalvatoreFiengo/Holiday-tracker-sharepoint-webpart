@@ -8,7 +8,7 @@ import {
 } from '@microsoft/sp-property-pane';
 
 import * as strings from 'HolidayTrackerWebPartStrings';
-import {IHolidayTrackerProps} from '../holidayTracker/components/IHolidayTrackerProps'
+import {IHolidayTrackerProps} from '../holidayTracker/components/IHolidayTrackerProps';
 import HolidayTracker from './components/HolidayTracker';
 
 
@@ -23,7 +23,7 @@ export default class HolidayTrackerWebPart extends BaseClientSideWebPart<IHolida
       siteUrl: this.context.pageContext.web.absoluteUrl,
       listName: this.properties.listName,
       context: this.context
-    })
+    });
    
   
     ReactDom.render(element, this.domElement);

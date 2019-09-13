@@ -1,18 +1,18 @@
 import * as React from 'react';
 
 import {Navbar, NavbarBrand, Nav, NavItem, NavLink, Table,Row, Col, Card, Button} from 'reactstrap';
-import './HolidayTracker.scss'
+import './HolidayTracker.scss';
 import Iuser from '../../interfaces/Iusers';
 import Idates from '../../interfaces/Idates';
 import  IHelloUserPart  from '../../interfaces//IwebPart';
-import {IHolidayTrackerProps} from '../components/IHolidayTrackerProps'
+import {IHolidayTrackerProps} from '../components/IHolidayTrackerProps';
 
 import HolidayTableComponent from '../components/holidayTableComponent';
 import HolidayNewModal from '../components/holidayNewModal';
 import dates from '../../variables/dates';
 import usersMock from '../../variables/usersMock';
 import MockHttpClient from './mockLists';
-import * as crud from './crudService'
+import * as crud from './crudService';
 
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import {
@@ -38,6 +38,7 @@ export interface IState {
   selectedWeek: number[];
   weekIsSelected:boolean;
   selectedMonth:number;
+  selectedYear:number;
   count:number;
   listLoaded: boolean;
   lists: [ISPList];
@@ -48,6 +49,7 @@ export interface IState {
   from:string;
   datePickerTo: boolean;
   datePickerFrom: boolean;
+  dayCheck:boolean;
   request:{};
 
 }
@@ -65,12 +67,12 @@ export interface ISPList {
   approved: boolean;
 }
 export interface ISPLists{
-  value: ISPList[]
+  value: ISPList[];
 }
 class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
   
   constructor(props:IHolidayTrackerProps){
-    super(props)
+    super(props);
   
     this.state={
       context: this.props.context,
@@ -85,6 +87,7 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
       selectedWeek: dates.weeksByMonth(dates.firstLastDayOfMonth(1,dates.now.getMonth()+1),dates.firstLastDayOfMonth(0,dates.now.getMonth()+1),true),
       weekIsSelected: false,
       selectedMonth:  dates.now.getMonth()+1,
+      selectedYear: dates.now.getFullYear(),
       count:dates.now.getMonth(),
       listLoaded: false,
       lists: [
@@ -118,11 +121,13 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
       from:"",
       datePickerTo: false,
       datePickerFrom: false,
+      dayCheck: false,
       request:{},
-    }
+    };
     this.toggle = this.toggle.bind(this);
     this.checkAgainstPreviousRequests=this.checkAgainstPreviousRequests.bind(this);
     this.getSpecificList= this.getSpecificList.bind(this);
+    this.handleDatePicker=this.handleDatePicker.bind(this);
   }
 
   private toggle() {
@@ -131,6 +136,20 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
     }));
 
   }
+  public handleDatePicker(day:number, month:number, all=false){
+    if(all){
+      this.setState({
+        selectedDate: new Date(new Date().getFullYear(), month, day),
+        dayCheck: false
+      });
+    }else{ 
+      this.setState({
+        selectedDate: new Date(new Date().getFullYear(), month, day),
+        dayCheck: true
+      }); 
+    }
+  };
+  
   public toggleDataPickerTo=()=>{
     this.setState(prevState=>({
       datePickerTo: !prevState.datePickerTo
@@ -150,67 +169,49 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
     for (let i=0; i<this.state.listValues.length;i++){
         let item = this.state.listValues[i];
         if(request.sykj === item.sykj || request.email === item.email){
-          const monthFrom = new Date(request.from).getMonth();
-          const monthTo= new Date(request.to).getMonth();
-          const itemMonthFrom = new Date(item.from).getMonth();
-          const itemMonthTo = new Date(item.to).getMonth();
-          if(monthFrom>=itemMonthFrom && monthFrom<=itemMonthTo || monthTo>=itemMonthFrom && monthTo<=itemMonthTo){
-            alert("Request already submitted");
+          const dateFrom = new Date(request.from).getDate();
+          const dateTo= new Date(request.to).getDate();
+          const itemDateFrom = new Date(item.from).getDate();
+          const itemDateTo = new Date(item.to).getDate();
+          const dateMonthFrom = new Date(request.from).getMonth();
+          const dateMonthTo= new Date(request.to).getMonth();
+          const itemDateMonthFrom = new Date(item.from).getMonth();
+          const itemDateMonthTo = new Date(item.to).getMonth();
+          if((dateFrom>=itemDateFrom && dateFrom<=itemDateTo || dateTo>=itemDateFrom && dateTo<=itemDateTo)
+          && (dateMonthFrom === itemDateMonthFrom || dateMonthTo === itemDateMonthTo)
+          && (dateMonthFrom === itemDateMonthTo || dateMonthTo === itemDateMonthFrom)){
+            alert("Request invaid. Please check whether you have older requests for same period");
+            console.log(dateMonthFrom)
             return false;
   
           }
           else{
+            console.log("else"+dateMonthFrom)
             this.setState({
               request: request,
-            })
-            console.log("ok done sure!")
+            });
             return true;
           }
         }
       }
     }
 
-  // private _getMockListData(): Promise<ISPLists> {
-  //   return MockHttpClient.get()
-  //     .then((data: ISPList[]) => {
-  //       var listData: ISPLists = {value: data};
-  //       return listData;
-  //     }) as Promise<ISPLists>;
-  // }
-   
-  // private _renderListAsync(): void {
-  //   // Local environment
-  //   if (Environment.type === EnvironmentType.Local) {
-  //       this._getMockListData().then((response) => {
-  //         this.getSpLists(response.value)
-  //     }).catch(error =>this.setState({error: error, listLoaded: true}));
-  //   }
-  //   else if ((Environment.type == EnvironmentType.SharePoint || 
-  //             Environment.type == EnvironmentType.ClassicSharePoint)) {
-  //     this._getListData().then((response) => {
-
-  //         this.getSpLists(response.value)
-
-  //         }).catch(error =>this.setState({error: error, listLoaded: true}));    
-  //   }
-  // }
-
   private getSpLists=(response)=>{
     this.setState({
       lists: response,
-    }, ()=>{console.log("list updated")})
+    }, ()=>{console.log("list updated");});
   }
 
   public getSpecificList=(response)=>{
     let values=Object.keys(response.value).map(item=>response.value[item]);
     this.setState({
       listValues: values 
-    }, ()=>{console.log("-UI updated with items- ")});
+    }, ()=>{console.log("-UI updated with items- ");});
   }
   
   private approveItem = (ctx, siteUrl, id, approval):Promise<ISPList>=>{
 
-    return crud._updateItemApproval(ctx, siteUrl, id, approval)
+    return crud._updateItemApproval(ctx, siteUrl, id, approval);
   }
 
   private deleteItem=(ctx, siteUrl, id):Promise<ISPList>=>{
@@ -220,7 +221,7 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
 
   public _renderSpecificListAsync(ctx, siteUrl): void {
     crud._getSpecificList(ctx, siteUrl).then((res)=>{
-      this.getSpecificList(res)
+      this.getSpecificList(res);
     });
   }
 
@@ -228,75 +229,91 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
 
     let prev=(count:number)=>{
       let counter=count;
-      counter--
-
-      if(counter==0)return;
+      counter--;
+      let selectedYear = this.state.selectedYear;
+      if(counter==0){
+        counter=12;
+        selectedYear--;
+      };
       this.setState({
         count:counter,
+        selectedYear: selectedYear,
         selectedMonth:counter,
-        selectedDate: new Date((new Date).getFullYear(), counter-1,(new Date).getDate())
-      },()=>updateWeeks(0,this.state.selectedMonth))
+        selectedDate: new Date(selectedYear, counter-1,(new Date).getDate())
+      },()=>updateWeeks(0,this.state.selectedMonth));
       
-    }
+    };
     let next=(count:number)=>{
       let counter=count;
-      counter++
-      if(counter>=12)counter=12
+      let selectedYear = this.state.selectedYear
+      counter++;
+      if(counter>12){
+        counter=1;
+        selectedYear++;
+      };
       this.setState({
         count:counter,
+        selectedYear: selectedYear,
         selectedMonth:counter,
-        selectedDate:new Date((new Date).getFullYear(), counter-1,(new Date).getDate())
+        selectedDate:new Date(selectedYear, counter-1,(new Date).getDate())
       },()=>{
-        updateWeeks(0,counter)
-      })
+        updateWeeks(0,counter);
+      });
       
-    }
+    };
     let updateWeeks=(n:number,count:number)=>{
       const weeks= dates.weeksByMonth;
       const month = dates.firstLastDayOfMonth;
+      const year = this.state.selectedYear
 
       if(n!==0 && count>=0){
         this.setState({
-          selectedWeek:weeks(month(1,count-1),month(0,count),false,n),
+          selectedWeek:weeks(month(1,count-1,year),month(0,count,year),false,n),
           weekIsSelected:true
-        })
+        });
       }else if(n===0 && count>=0){
         this.setState({
-          selectedWeek:weeks(month(1,count-1),month(0,count),true),
+          selectedWeek:weeks(month(1,count-1,year),month(0,count,year),true),
           weekIsSelected:false
-        })       
+        });       
       }else{
-        return 
+        return; 
       }
-    }
+    };
 
-    let checkDates=(from:string, to:string, selectedDate:string):boolean=>{
+    let checkDates=(from:string, to:string, selectedDate:string, dayCheck=false):boolean=>{
 
-      const start = new Date(from).getMonth();
-      const end = new Date(to).getMonth();
-      const selected = new Date(selectedDate).getMonth();
-      const startNumber:number = Number(start);
-      const endNumber:number = Number(end);
-      const selectedNumber:number = Number(selected);
-      
-      if(startNumber=== 0 || endNumber === 0){
-        return false;
+      const startDateDay = new Date(from).getDate();
+      const endDateDay = new Date(to).getDate();
+      const selectedDateDay= new Date(selectedDate).getDate();
+
+      const startDateMonth = new Date(from).getMonth();
+      const endDateMonth = new Date(to).getMonth();
+      const selectedDateMonth = new Date(selectedDate).getMonth();
+
+      const startDateYear = new Date(from).getFullYear();
+      const endDateYear = new Date(to).getFullYear();
+      const selectedDateYear = new Date(selectedDate).getFullYear();
+      if(dayCheck){
+        if((startDateDay<=selectedDateDay && selectedDateDay<=endDateDay) 
+          && (startDateMonth === selectedDateMonth || endDateMonth === selectedDateMonth)
+          && (startDateYear === selectedDateYear || endDateYear === selectedDateYear)){
+            console.log(startDateDay +" <= "+selectedDateDay+" <= "+endDateDay)
+          return true;
+        }else{
+          return false;
+        }
       }
-      else if(startNumber<=selectedNumber && selectedNumber<=endNumber ){
-        return true;
-      }else{
+      else if((startDateMonth===selectedDateMonth && selectedDateMonth===endDateMonth) 
+        && (startDateYear===selectedDateYear || endDateYear === selectedDateYear)){
+          console.log(startDateMonth+" and "+selectedDateMonth)
+          return true;
+      }
+      else{
         return false;
       }
   
-    }
-
-    let handleDatePicker=(day:number, month:number)=>{
-      
-      this.setState({
-        selectedDate: new Date(new Date().getFullYear(), month, day)
-      }) 
-    }
-
+    };
 
     return (
       <div>
@@ -305,50 +322,53 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
             <div className="mh-36 pr-2 float-left border-right border-secondary ">
               <NavbarBrand className="mx-3 text-center " href="/"><h1>Holiday Tracker</h1></NavbarBrand>
                 <blockquote className="blockquote">
-                  <footer className="blockquote-footer text-center"> Today is {this.state.dates.now.toString().slice(0,15)}</footer>
+                  <footer className="blockquote-footer text-center"> Today is {this.state.dates.now.getDate()}-{dates.months[this.state.dates.now.getMonth()]}-{this.state.dates.now.getFullYear()}</footer>
                 </blockquote>
             </div>
-            <Nav className="w-50 mx-auto" navbar pills>
-              <NavItem className="mx-auto">
-                  <NavLink href="#">
-                    <h3>HOME</h3>
-                  </NavLink>
-              </NavItem>
-              <NavItem className="mx-auto">
-                  <NavLink href="#" onClick={this.toggle}>
-                     <h3>NEW</h3> 
-                  </NavLink>
-              </NavItem>
-              <NavItem className="mx-auto">
-                  <NavLink href="#">
-                      <h3>CREDITS</h3>
-                  </NavLink>
-              </NavItem>
-            </Nav>
+              <Nav className="w-50 mx-auto text-center" navbar pills>
+                <NavItem className="mx-auto">
+                    <NavLink href="#" onClick={this.toggle}>
+                      <h3>Add Holiday</h3> 
+                    </NavLink>
+                </NavItem>
+                <NavItem className="mx-auto">
+                    <NavLink href="#">
+                      <h3>Supervisor Area</h3> 
+                    </NavLink>
+                </NavItem>
+              </Nav>
           </Navbar>
         </header>
         <section className="mt-5">
-          <Row>
+          <Row className="mb-5">
             <Col md="12">
-              <HolidayTableComponent prev={(count)=>prev(count)} next={next} count={this.state.selectedMonth} month={dates.months[this.state.selectedMonth-1]} dates={this.state.selectedWeek} handleDatePicker={handleDatePicker}/> 
+              <HolidayTableComponent 
+                prev={(count)=>prev(count)} 
+                next={next} count={this.state.selectedMonth} 
+                month={dates.months[this.state.selectedMonth-1]} 
+                year={this.state.selectedYear} 
+                dates={this.state.selectedWeek} 
+                handleDatePicker={this.handleDatePicker}
+                listValues={this.state.listValues}/> 
             </Col>
           </Row>
           <Row>
             <Col md="12">
               {this.state.list!== undefined? this.state.listValues.map(item=>{
-                if(checkDates(item.from, item.to, this.state.selectedDate.toString())
+                if(checkDates(item.from, item.to, this.state.selectedDate.toString(),this.state.dayCheck)
                 && item.email === this.props.context.pageContext.user.email){
                   
-                return <ul className="list">
-                        <li className="listItem">
-                          <div className={item.approved?"border-left border-bottom border-success list":"border-left border-bottom border-danger list"}>
-                            <Table>
+                return    <div className= "table-responsive mb-5">
+                            <Table className={"border-left border-bottom table table-bordered table-sm "+(item.approved?"border-success":"border-danger")}>
                               <thead>
-                                <th>Request:</th>
-                                <th>E-mail:</th>
-                                <th>Agent Name:</th>
-                                <th>from:</th>
-                                <th>to:</th>
+                                <tr className={item.approved?"table-success":"table-danger"}>
+                                  <th>Request:</th>
+                                  <th>E-mail:</th>
+                                  <th>Agent Name:</th>
+                                  <th>from:</th>
+                                  <th>to:</th>
+                                  <th>comments:</th>
+                                </tr>
                               </thead>
                               <tbody>
                                 <tr>
@@ -362,29 +382,25 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
                                     <p>{item.sykj}</p>
                                   </td>
                                   <td>
-                                    <p>{new Date(item.to).getDate()}-{this.state.dates.months[new Date(item.to).getMonth()]}</p>
+                                    <p>{new Date(item.from).getDate()}-{this.state.dates.months[new Date(item.to).getMonth()]}</p>
                                   </td>
                                   <td>
                                     <p>{new Date(item.to).getDate()}-{this.state.dates.months[new Date(item.to).getMonth()]}</p>
                                   </td>
+                                  <td><p>{item.comment}</p></td>
                                 </tr>
                               </tbody>
                               <tfoot >
                                 <tr >
-                                  <td colSpan={2}><Button disabled={item.approved?true:false} className="bg-warning" onClick={()=>this.deleteItem(this.state.context, this.state.siteUrl, item.Id).then(res=>this.getSpecificList(res)) } >Delete</Button></td>
-                                  <td colSpan={2}>
-                                  {item.approved?<p className="text-success">Already Approved</p>:<Button className="bg-success" onClick={()=>this.approveItem(this.state.context, this.state.siteUrl, item.Id, true).then(res=>this.getSpecificList(res))}>Approve</Button>} 
+                                  <td colSpan={3}>{item.approved?null:<Button className="btn-sm bg-warning" onClick={()=>this.deleteItem(this.state.context, this.state.siteUrl, item.Id).then(res=>this.getSpecificList(res)) } >Delete</Button>}</td>
+                                  <td colSpan={3}>
+                                  {item.approved?<p className="text-success">Already Approved</p>:<Button className="btn-sm bg-success" onClick={()=>this.approveItem(this.state.context, this.state.siteUrl, item.Id, true).then(res=>this.getSpecificList(res))}>Approve</Button>} 
                                   </td>
-                                  <td></td>
                                 </tr>
-                                
                               </tfoot>
                             </Table>
-                          </div>
-                          
-                        </li>
-                      </ul>
-                }else{return null}
+                          </div>;
+                }else{return null;}
               }):<h2>No data available, please refresh</h2>}
               
             </Col>
@@ -399,8 +415,9 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
             next={next} 
             count={this.state.selectedMonth} 
             month={dates.months[this.state.selectedMonth-1]} 
+            year={this.state.selectedYear}
             dates={this.state.selectedWeek} 
-            handleDatePicker={handleDatePicker} 
+            handleDatePicker={this.handleDatePicker} 
             dateChosen={this.state.selectedDate} 
             datePickerTo={this.state.datePickerTo} 
             toggleDataPickerTo={this.toggleDataPickerTo} 
@@ -408,6 +425,7 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
             toggleDataPickerFrom={this.toggleDataPickerFrom}
             checkRequest={this.checkAgainstPreviousRequests}
             getLists={this.getSpecificList}
+            listValues={this.state.listValues}
             > {this.props.children}</HolidayNewModal>
         </section>
       </div>

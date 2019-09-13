@@ -9,6 +9,7 @@ interface InewFormProps {
   siteUrl:string;
   dates: number[];
   month: string;
+  year: number;
   prev:(count:number)=>void;
   next:(count:number)=>void;
   count:number;
@@ -21,6 +22,7 @@ interface InewFormProps {
   toggle:()=>void;
   checkRequest:(request:any)=>boolean;
   getLists:(response)=>void;
+  listValues:any;
 }
 
 interface IformState {
@@ -77,8 +79,8 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
       from : new Date(this.state.from),
       to: new Date(this.state.to)
 
-    }
-    this.props.checkRequest(request);
+    };
+
     if(this.props.checkRequest(request)){
       crud._createItem(this.props.context,this.props.siteUrl,request).then(res=>this.props.getLists(res));
     }
@@ -139,14 +141,30 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
         <Button onClick={()=>this.props.toggleDataPickerFrom()} id="from" className="d-inline-block">From: </Button>
           <span className="d-inline-block border text-center w-50 ml-5"> <p className={this.state.dateValidity}>{this.state.from.slice(0,15)}</p></span>
           <Collapse isOpen={this.props.datePickerFrom}>
-            <HolidayTableComponent prev={(count)=>this.props.prev(count)} next={this.props.next} count={this.props.count} month={this.props.month} dates={this.props.dates} handleDatePicker={this.handleDatePickerFrom}></HolidayTableComponent>
+            <HolidayTableComponent 
+              prev={(count)=>this.props.prev(count)} 
+              next={this.props.next} 
+              count={this.props.count} 
+              month={this.props.month} 
+              year={this.props.year} 
+              dates={this.props.dates} 
+              handleDatePicker={this.handleDatePickerFrom}
+              listValues={this.props.listValues}></HolidayTableComponent>
           </Collapse>
         </FormGroup>
         <FormGroup>
           <Button onClick={()=>this.props.toggleDataPickerTo()} id="to" className="d-inline-block">To: </Button>
           <span className="d-inline-block border text-center w-50 ml-5"> <p className={this.state.dateValidity}>{this.state.to.slice(0,15)}</p> </span>
           <Collapse isOpen={this.props.datePickerTo}>
-            <HolidayTableComponent prev={(count)=>this.props.prev(count)} next={this.props.next} count={this.props.count} month={this.props.month} dates={this.props.dates} handleDatePicker={this.handleDatePickerTo}></HolidayTableComponent>
+            <HolidayTableComponent 
+              prev={(count)=>this.props.prev(count)} 
+              next={this.props.next} 
+              count={this.props.count} 
+              month={this.props.month} 
+              year={this.props.year} 
+              dates={this.props.dates} 
+              handleDatePicker={this.handleDatePickerTo}
+              listValues={this.props.listValues}></HolidayTableComponent>
           </Collapse>
         </FormGroup>
         <FormGroup>

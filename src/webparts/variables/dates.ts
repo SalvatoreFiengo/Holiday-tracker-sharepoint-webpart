@@ -9,26 +9,26 @@ const dates:Idates={
     firstLastDayOfMonth: ()=>new Date(),
     weeksByMonth: ()=>[],
     getDateObj: (date:Date,user:Iuser,arr:[[Date,Iuser]])=>{
-        arr.push([date, user])
+        arr.push([date, user]);
     }
-}
+};
 dates.yearStart=new Date(dates.now.getFullYear(),0,1);
-dates.yearEnd=new Date(dates.now.getFullYear(),12,0)
+dates.yearEnd=new Date(dates.now.getFullYear(),12,0);
 dates.firstLastDayOfMonth=(choice?:number|undefined, month?:number,year?:number|undefined):Date=>{
-    const chosenYear:number|undefined = year===undefined? dates.now.getFullYear():year
+    const chosenYear:number|undefined = year===undefined? dates.now.getFullYear():year;
     const day:number|undefined = choice===undefined?0:choice;
-    let chosenMonth:number|undefined= month===undefined? dates.now.getMonth():month
+    let chosenMonth:number|undefined= month===undefined? dates.now.getMonth():month;
     
     let result:Date;
-    result= new Date(chosenYear, chosenMonth, day)
+    result= new Date(chosenYear, chosenMonth, day);
     return result;
-  }
+  };
 dates.weeksByMonth=(dateFirst:Date, dateSecond:Date, all:boolean|undefined=false,n?:number|undefined):number[] =>{
     const start:number= dateFirst.getDate();
     const end:number = dateSecond.getDate();
     let month:number[]=[];
-    let week:number[]=[]
-    let weeks:[number[]]=[[]]
+    let week:number[]=[];
+    let weeks:[number[]]=[[]];
     for(let i=start; i<=end; i++){
       month.push(i);
       if(i%7!==0){
@@ -45,10 +45,9 @@ dates.weeksByMonth=(dateFirst:Date, dateSecond:Date, all:boolean|undefined=false
 
       return weeks[n];
     }else{
-      n=1
-      console.log(month)
+      n=1;
       return weeks[n];
 
     }
-  }
+  };
 export default dates;
