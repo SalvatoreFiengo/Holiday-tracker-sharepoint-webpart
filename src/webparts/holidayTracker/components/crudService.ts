@@ -16,14 +16,14 @@ export  let getSpLists=(response)=>{
         }
     };
 
-export let _getSpecificList=(ctx, siteUrl): Promise<ISPList>=> {
-    return ctx.spHttpClient.get(siteUrl + `/_api/web/Lists/GetByTitle('ooo_test')/items`, SPHttpClient.configurations.v1)
+export let _getSpecificList=(list,ctx, siteUrl): Promise<ISPList>=> {
+    return ctx.spHttpClient.get(siteUrl + `/_api/web/Lists/GetByTitle('`+list+`')/items`, SPHttpClient.configurations.v1)
         .then((response: SPHttpClientResponse) => {
             return response.json();
         });
     };
 
-export let _createItem=(ctx, siteUrl, request):Promise<void> =>{
+export let _createItem=(list,ctx, siteUrl, request):Promise<void> =>{
     const body: string= JSON.stringify({
       '__metadata': {
         'type': 'SP.Data.Ooo_x005f_testListItem'
@@ -37,7 +37,7 @@ export let _createItem=(ctx, siteUrl, request):Promise<void> =>{
       'comment':request.comments
     }); 
 
-    return ctx.spHttpClient.post(siteUrl+`/_api/web/lists/getbytitle('ooo_test')/items`,
+    return ctx.spHttpClient.post(siteUrl+`/_api/web/lists/getbytitle('`+list+`')/items`,
     SPHttpClient.configurations.v1,
     {
       headers: {
@@ -48,17 +48,17 @@ export let _createItem=(ctx, siteUrl, request):Promise<void> =>{
       body: body
     }).then((response: SPHttpClientResponse): Promise<any>=>{
       return response.json();
-    }).then(()=>_getSpecificList(ctx, siteUrl));
+    }).then(()=>_getSpecificList(list,ctx, siteUrl));
   };
 
-  export let _updateItemApproval = (ctx, siteUrl, id, approval):Promise<ISPList>=>{
+  export let _updateItemApproval = (list, ctx, siteUrl, id, approval):Promise<ISPList>=>{
     const body: string= JSON.stringify({
       '__metadata': {
         'type': 'SP.Data.Ooo_x005f_testListItem'
       },
       'approved': ""+approval
     }); 
-    return ctx.spHttpClient.post(siteUrl+`/_api/web/lists/getbytitle('ooo_test')/GetItemById(`+id+`)`,
+    return ctx.spHttpClient.post(siteUrl+`/_api/web/lists/getbytitle('`+list+`')/GetItemById(`+id+`)`,
       SPHttpClient.configurations.v1,
       {
         headers: {
@@ -69,11 +69,11 @@ export let _createItem=(ctx, siteUrl, request):Promise<void> =>{
           'X-HTTP-Method': 'MERGE'
         },
         body:body
-      }).then(()=>_getSpecificList(ctx, siteUrl));
+      }).then(()=>_getSpecificList(list, ctx, siteUrl));
   };
-  export let _deleteItem = (ctx, siteUrl, id):Promise<ISPList>=>{
+  export let _deleteItem = (list,ctx, siteUrl, id):Promise<ISPList>=>{
 
-      return ctx.spHttpClient.post(siteUrl+`/_api/web/lists/getbytitle('ooo_test')/GetItemById(`+id+`)`,
+      return ctx.spHttpClient.post(siteUrl+`/_api/web/lists/getbytitle('`+list+`')/GetItemById(`+id+`)`,
       SPHttpClient.configurations.v1,
       {
         headers: {
@@ -83,5 +83,5 @@ export let _createItem=(ctx, siteUrl, request):Promise<void> =>{
           'IF-MATCH': '*',
           'X-HTTP-Method': 'DELETE'
         },
-      }).then(()=>_getSpecificList(ctx, siteUrl));
+      }).then(()=>_getSpecificList(list,ctx, siteUrl));
   };

@@ -25,6 +25,7 @@ interface IholidaysMProps{
     getLists: (response)=>void;
     listValues:any;
 
+
 }
 
 

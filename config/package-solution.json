@@ -5,7 +5,7 @@
     "id": "ea42a37c-0097-4639-99d7-91d69af7e064",
     "version": "1.0.0.0",
     "includeClientSideAssets": true,
-    "isDomainIsolated": true
+    "isDomainIsolated": false
   },
   "paths": {
     "zippedPackage": "solution/holiday-tracker-web-part.sppkg"

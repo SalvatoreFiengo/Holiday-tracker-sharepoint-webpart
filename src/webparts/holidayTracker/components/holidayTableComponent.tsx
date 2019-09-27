@@ -11,7 +11,8 @@ type Props = {
     next:(count:number)=>void,
     count:number,
     handleDatePicker: (date, month,boolean?)=>void
-    listValues:any
+    listValues:any,
+    optionalAll:boolean
 };
 
 class HolidayTableComponent extends React.Component<Props>{
@@ -37,7 +38,7 @@ class HolidayTableComponent extends React.Component<Props>{
                     <tr>
                         <td colSpan={3}>
                             <div className="resized">
-                            <Card type="button" className="customCard d-inline mr-md-3" onClick={()=>this.props.handleDatePicker(1, this.props.count-1,true)}>All</Card>
+                            {this.props.optionalAll?<Card type="button" className="customCard d-inline mr-md-3" onClick={()=>this.props.handleDatePicker(1, this.props.count-1,true)}>All</Card>:null}
                                 {this.props.dates.map((chose, i)=>{
                                     return(
                                     <Card key={i} onClick={()=>this.props.handleDatePicker(chose, this.props.count-1)} type="button" className="customCard d-inline">

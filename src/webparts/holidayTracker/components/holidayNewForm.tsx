@@ -3,6 +3,7 @@ import * as crud from './crudService';
 import { Button, Form, FormGroup, Label, Input, FormText, Collapse } from 'reactstrap';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import HolidayTableComponent from './holidayTableComponent';
+import { array } from 'prop-types';
 
 interface InewFormProps {
   context: WebPartContext;
@@ -67,7 +68,6 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
 
   }
 
-
   private handleSubmit(event) {
     event.preventDefault();
     const request = {
@@ -82,7 +82,7 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
     };
 
     if(this.props.checkRequest(request)){
-      crud._createItem(this.props.context,this.props.siteUrl,request).then(res=>this.props.getLists(res));
+      crud._createItem('ooo_test',this.props.context,this.props.siteUrl,request).then(res=>this.props.getLists(res));
     }
     this.props.toggle();
 
@@ -149,7 +149,8 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
               year={this.props.year} 
               dates={this.props.dates} 
               handleDatePicker={this.handleDatePickerFrom}
-              listValues={this.props.listValues}></HolidayTableComponent>
+              listValues={this.props.listValues}
+              optionalAll={false}></HolidayTableComponent>
           </Collapse>
         </FormGroup>
         <FormGroup>
@@ -164,14 +165,19 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
               year={this.props.year} 
               dates={this.props.dates} 
               handleDatePicker={this.handleDatePickerTo}
-              listValues={this.props.listValues}></HolidayTableComponent>
+              listValues={this.props.listValues}
+              optionalAll={false}></HolidayTableComponent>
           </Collapse>
         </FormGroup>
         <FormGroup>
           <Label for="lob">LOB</Label>
           <Input type="select" name="selectLob" id="lobSelect" value={this.state.lobSelect} onChange={this.handleChange}>
-            <option>CBO</option>
-            <option>MSA</option>
+            {this.props.listValues.map(item=>item.lob).reduce((accumulator,currentValue)=>{
+              if(accumulator.indexOf(currentValue)===-1){
+                accumulator.push(currentValue);
+              }
+              return accumulator;
+            },[]).map(item=>{return <option>{item}</option>;})}
           </Input>
         </FormGroup>
         <FormGroup>

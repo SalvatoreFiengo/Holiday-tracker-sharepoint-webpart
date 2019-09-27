@@ -209,18 +209,18 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
     }, ()=>{console.log("-UI updated with items- ");});
   }
   
-  private approveItem = (ctx, siteUrl, id, approval):Promise<ISPList>=>{
+  private approveItem = (list, ctx, siteUrl, id, approval):Promise<ISPList>=>{
 
-    return crud._updateItemApproval(ctx, siteUrl, id, approval);
+    return crud._updateItemApproval('ooo_test',ctx, siteUrl, id, approval);
   }
 
   private deleteItem=(ctx, siteUrl, id):Promise<ISPList>=>{
 
-    return crud._deleteItem(ctx, siteUrl, id);
+    return crud._deleteItem('ooo_test',ctx, siteUrl, id);
   }
 
   public _renderSpecificListAsync(ctx, siteUrl): void {
-    crud._getSpecificList(ctx, siteUrl).then((res)=>{
+    crud._getSpecificList('ooo_test',ctx, siteUrl).then((res)=>{
       this.getSpecificList(res);
     });
   }
@@ -349,7 +349,8 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
                 year={this.state.selectedYear} 
                 dates={this.state.selectedWeek} 
                 handleDatePicker={this.handleDatePicker}
-                listValues={this.state.listValues}/> 
+                listValues={this.state.listValues}
+                optionalAll={true}/> 
             </Col>
           </Row>
           <Row>
@@ -394,7 +395,7 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
                                 <tr >
                                   <td colSpan={3}>{item.approved?null:<Button className="btn-sm bg-warning" onClick={()=>this.deleteItem(this.state.context, this.state.siteUrl, item.Id).then(res=>this.getSpecificList(res)) } >Delete</Button>}</td>
                                   <td colSpan={3}>
-                                  {item.approved?<p className="text-success">Already Approved</p>:<Button className="btn-sm bg-success" onClick={()=>this.approveItem(this.state.context, this.state.siteUrl, item.Id, true).then(res=>this.getSpecificList(res))}>Approve</Button>} 
+                                  {item.approved?<p className="text-success">Already Approved</p>:<Button className="btn-sm bg-success" onClick={()=>this.approveItem('ooo_test',this.state.context, this.state.siteUrl, item.Id, true).then(res=>this.getSpecificList(res))}>Approve</Button>} 
                                   </td>
                                 </tr>
                               </tfoot>

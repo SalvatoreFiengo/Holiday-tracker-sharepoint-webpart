@@ -1,5 +1,13 @@
 {
   "extends": "@microsoft/sp-tslint-rules/base-tslint.json",
+  "displayAsWarning": true,
+  "removeExistingRules": true,
+  "useDefaultConfigAsBase": false,
+  "linterOptions": {
+    "exclude": [
+      "src/**/*.scss"
+    ]
+  },
   "rules": {
     "class-name": false,
     "export-name": false,
@@ -15,11 +23,11 @@
     "no-internal-module": true,
     "no-shadowed-variable": true,
     "no-switch-case-fall-through": true,
-    "no-unnecessary-semicolons": true,
+    "no-unnecessary-semicolons": false,
     "no-unused-expression": true,
-    "no-use-before-declare": true,
+    "no-use-before-declare": false,
     "no-with-statement": true,
-    "semicolon": true,
+    "semicolon": false,
     "trailing-comma": false,
     "typedef": false,
     "typedef-whitespace": false,
