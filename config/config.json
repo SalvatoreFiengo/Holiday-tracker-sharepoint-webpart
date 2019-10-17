@@ -11,7 +11,8 @@
       ]
     }
   },
-  "externals": {},
+  "externals": {
+  },
   "localizedResources": {
     "HolidayTrackerWebPartStrings": "lib/webparts/holidayTracker/loc/{locale}.js"
   }

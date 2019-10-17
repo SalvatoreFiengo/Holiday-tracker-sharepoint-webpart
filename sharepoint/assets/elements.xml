@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Elements xmlns="http://schemas.microsoft.com/sharepoint/">
+    <Field ID="{74608ABA-DE0B-4B12-BE55-DDF97A4EF164}"
+            Name="requestType"
+            DisplayName="requestType"
+            Type="Text"
+            Required="FALSE"
+            Group="OOO_test Columns" />
+
+    <Field ID="{943E7530-5E2B-4C02-8259-CCD93A9ECB18}"
+            Name="email"
+            DisplayName="email"
+            Type="Text"
+            Required="FALSE"
+            Group="OOO_test Columns"/>
+            
+    <ListInstance 
+            CustomSchema="schema.xml"
+            FeatureId="00bfea71-de22-43b2-a848-c05709900100"
+            Title="OOO_test" 
+            Description="Out Of Office Requests"
+            TemplateType="100"
+            Url="Lists/OOO_test">
+    </ListInstance>
+
+</Elements>

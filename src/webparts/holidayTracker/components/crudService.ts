@@ -1,6 +1,45 @@
-import { SPHttpClientResponse, SPHttpClient } from "@microsoft/sp-http";
+import { SPHttpClientResponse, SPHttpClient, ISPHttpClientOptions } from "@microsoft/sp-http";
 import { ISPLists, ISPList } from "./HolidayTracker";
 
+export let createSharePointList = (ctx,listloader): void => {
+  const getListUrl: string = ctx.pageContext.web.absoluteUrl + "/_api/web/lists/GetByTitle('ooo_test')";
+  ctx.spHttpClient.get(getListUrl, SPHttpClient.configurations.v1).then((response: SPHttpClientResponse) => {
+  if (response.status === 200) {
+    listloader()
+    return; // list already exists
+  }
+  if (response.status === 404) {
+    const url: string = ctx.pageContext.web.absoluteUrl + "/_api/web/lists";
+    const listDefinition : any = {
+      "Title": "ooo_test",
+      "Description": "Out Of Office Requests",
+      "AllowContentTypes": true,
+      "BaseTemplate": 100,
+      "ContentTypesEnabled": true,
+      };
+
+    const spHttpClientOptions: ISPHttpClientOptions = {
+      "body": JSON.stringify(listDefinition)
+    };
+    ctx.spHttpClient
+      .post(url, SPHttpClient.configurations.v1, spHttpClientOptions)
+      .then((res: SPHttpClientResponse) => {
+    if (res.status === 201) {
+
+
+        const created = confirm("List Created");
+        if(created){
+          console.log("list created baby!");
+        }
+    } else {
+      alert("Response status "+res.status+" - "+res.statusText);
+      }
+    });
+  } else {
+    alert("Something went wrong. "+response.status+" "+response.statusText);
+    }
+  });
+}
 export  let getSpLists=(response)=>{
         this.setState({
         lists: response,

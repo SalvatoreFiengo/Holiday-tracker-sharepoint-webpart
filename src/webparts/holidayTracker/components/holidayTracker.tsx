@@ -15,6 +15,7 @@ import MockHttpClient from './mockLists';
 import * as crud from './crudService';
 
 import { WebPartContext } from '@microsoft/sp-webpart-base';
+import { SPComponentLoader } from '@microsoft/sp-loader';
 import {
   SPHttpClient,
   SPHttpClientResponse   
@@ -23,7 +24,7 @@ import {
   Environment,
   EnvironmentType
 } from '@microsoft/sp-core-library';
-
+import { any } from 'prop-types';
 
 export interface IState {
   context: WebPartContext;
@@ -43,8 +44,10 @@ export interface IState {
   listLoaded: boolean;
   lists: [ISPList];
   list: ISPList;
-  listValues: any[];
+  listValues: any;
+  usersList: any;
   userName:string;
+  supervisor:boolean;
   selectedDate:Date;
   from:string;
   datePickerTo: boolean;
@@ -116,6 +119,7 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
         approver:""
       },
       listValues: [],
+      usersList: [],
       userName:"",
       selectedDate:dates.now,
       from:"",
@@ -123,6 +127,7 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
       datePickerFrom: false,
       dayCheck: false,
       request:{},
+      supervisor: false
     };
     this.toggle = this.toggle.bind(this);
     this.checkAgainstPreviousRequests=this.checkAgainstPreviousRequests.bind(this);
@@ -162,7 +167,8 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
   }
 
   public componentDidMount(): void {
-    this._renderSpecificListAsync(this.state.context, this.state.siteUrl);
+    this._renderSpecificListAsync('ooo_test', this.state.context, this.state.siteUrl);
+    this._renderSpecificListAsync('agents', this.state.context, this.state.siteUrl);
   }
 
   public checkAgainstPreviousRequests(request):boolean {
@@ -204,9 +210,7 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
 
   public getSpecificList=(response)=>{
     let values=Object.keys(response.value).map(item=>response.value[item]);
-    this.setState({
-      listValues: values 
-    }, ()=>{console.log("-UI updated with items- ");});
+    return values
   }
   
   private approveItem = (list, ctx, siteUrl, id, approval):Promise<ISPList>=>{
@@ -219,10 +223,18 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
     return crud._deleteItem('ooo_test',ctx, siteUrl, id);
   }
 
-  public _renderSpecificListAsync(ctx, siteUrl): void {
-    crud._getSpecificList('ooo_test',ctx, siteUrl).then((res)=>{
-      this.getSpecificList(res);
-    });
+  public _renderSpecificListAsync(list,ctx, siteUrl) {
+    crud._getSpecificList(list,ctx, siteUrl).then((res)=>{
+      if(list === 'ooo_test'){
+        this.setState({
+          listValues: this.getSpecificList(res)
+        });
+      }else if(list === 'agents'){
+        this.setState({
+          usersList: this.getSpecificList(res)
+        },()=>{console.log(this.state.usersList)});
+      } 
+    })
   }
 
   public render(){
@@ -298,7 +310,6 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
         if((startDateDay<=selectedDateDay && selectedDateDay<=endDateDay) 
           && (startDateMonth === selectedDateMonth || endDateMonth === selectedDateMonth)
           && (startDateYear === selectedDateYear || endDateYear === selectedDateYear)){
-            console.log(startDateDay +" <= "+selectedDateDay+" <= "+endDateDay)
           return true;
         }else{
           return false;
@@ -331,11 +342,17 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
                       <h3>Add Holiday</h3> 
                     </NavLink>
                 </NavItem>
-                <NavItem className="mx-auto">
-                    <NavLink href="#">
-                      <h3>Supervisor Area</h3> 
-                    </NavLink>
-                </NavItem>
+                {this.state.usersList.map((item)=>{
+                  if(item.agentEmail===this.props.context.pageContext.user.email && item.admin || 
+                    item.agentEmail===this.props.context.pageContext.user.email && item.supervisor){
+                      return (<NavItem className="mx-auto">
+                                <NavLink href="#">
+                                    <h3>Supervisor Area</h3> 
+                                </NavLink>
+                              </NavItem>)
+                      }
+                    })
+                }
               </Nav>
           </Navbar>
         </header>
@@ -356,7 +373,7 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
           <Row>
             <Col md="12">
               {this.state.list!== undefined? this.state.listValues.map(item=>{
-                if(checkDates(item.from, item.to, this.state.selectedDate.toString(),this.state.dayCheck)
+                if(checkDates(item.from, item.to, this.state.selectedDate.toString(), this.state.dayCheck)
                 && item.email === this.props.context.pageContext.user.email){
                   
                 return    <div className= "table-responsive mb-5">
