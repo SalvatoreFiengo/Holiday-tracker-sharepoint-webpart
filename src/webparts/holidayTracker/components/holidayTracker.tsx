@@ -9,6 +9,7 @@ import {IHolidayTrackerProps} from '../components/IHolidayTrackerProps';
 
 import HolidayTableComponent from '../components/holidayTableComponent';
 import HolidayNewModal from '../components/holidayNewModal';
+import DataTable from '../components/dataTable';
 import dates from '../../variables/dates';
 import usersMock from '../../variables/usersMock';
 import MockHttpClient from './mockLists';
@@ -32,7 +33,7 @@ export interface IState {
   error: string;
   webPartData:IHelloUserPart["data"];
   isWDataValid:IHelloUserPart["isValid"];
-  user:[Iuser];
+  user:any;
   dates:Idates;
   weeks:number[];
   modal: boolean;
@@ -54,6 +55,7 @@ export interface IState {
   datePickerFrom: boolean;
   dayCheck:boolean;
   request:{};
+  dataTableFilter:any;
 
 }
 
@@ -127,7 +129,8 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
       datePickerFrom: false,
       dayCheck: false,
       request:{},
-      supervisor: false
+      supervisor:false,
+      dataTableFilter:this.props.context.pageContext.user.email
     };
     this.toggle = this.toggle.bind(this);
     this.checkAgainstPreviousRequests=this.checkAgainstPreviousRequests.bind(this);
@@ -202,6 +205,41 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
       }
     }
 
+  public checkDates=(from:string, to:string, selectedDate:string, dayCheck=false):boolean=>{
+
+    const startDateDay = new Date(from).getDate();
+    const endDateDay = new Date(to).getDate();
+    const selectedDateDay= new Date(selectedDate).getDate();
+
+    const startDateMonth = new Date(from).getMonth();
+    const endDateMonth = new Date(to).getMonth();
+    const selectedDateMonth = new Date(selectedDate).getMonth();
+
+    const startDateYear = new Date(from).getFullYear();
+    const endDateYear = new Date(to).getFullYear();
+    const selectedDateYear = new Date(selectedDate).getFullYear();
+    if(dayCheck){
+      if((startDateDay<=selectedDateDay && selectedDateDay<=endDateDay) 
+        && (startDateMonth === selectedDateMonth || endDateMonth === selectedDateMonth)
+        && (startDateYear === selectedDateYear || endDateYear === selectedDateYear)){
+          //->list In State of dates --> reflected on caledar with colours?
+        return true;
+      }else{
+        return false;
+      }
+    }
+    else if((startDateMonth===selectedDateMonth && selectedDateMonth===endDateMonth) 
+      && (startDateYear===selectedDateYear || endDateYear === selectedDateYear)){
+
+        return true;
+    }
+    else{
+      return false;
+    }
+
+  };
+
+
   private getSpLists=(response)=>{
     this.setState({
       lists: response,
@@ -232,8 +270,18 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
       }else if(list === 'agents'){
         this.setState({
           usersList: this.getSpecificList(res)
-        },()=>{console.log(this.state.usersList)});
+        },()=>{console.log(this.state.usersList[this.props.context.pageContext.user.email])})
       } 
+    }).then(()=>{
+      this.state.usersList.map(item=>{
+        if(item.agentEmail == this.props.context.pageContext.user.email){
+        this.setState({
+          user:item
+        });
+        }else{
+          return
+        }
+      })
     })
   }
 
@@ -310,6 +358,7 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
         if((startDateDay<=selectedDateDay && selectedDateDay<=endDateDay) 
           && (startDateMonth === selectedDateMonth || endDateMonth === selectedDateMonth)
           && (startDateYear === selectedDateYear || endDateYear === selectedDateYear)){
+            //->list In State of dates --> reflected on caledar with colours?
           return true;
         }else{
           return false;
@@ -317,7 +366,7 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
       }
       else if((startDateMonth===selectedDateMonth && selectedDateMonth===endDateMonth) 
         && (startDateYear===selectedDateYear || endDateYear === selectedDateYear)){
-          console.log(startDateMonth+" and "+selectedDateMonth)
+
           return true;
       }
       else{
@@ -350,8 +399,8 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
                                     <h3>Supervisor Area</h3> 
                                 </NavLink>
                               </NavItem>)
-                      }
-                    })
+                  }
+                })
                 }
               </Nav>
           </Navbar>
@@ -371,58 +420,29 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
             </Col>
           </Row>
           <Row>
-            <Col md="12">
-              {this.state.list!== undefined? this.state.listValues.map(item=>{
-                if(checkDates(item.from, item.to, this.state.selectedDate.toString(), this.state.dayCheck)
-                && item.email === this.props.context.pageContext.user.email){
-                  
-                return    <div className= "table-responsive mb-5">
-                            <Table className={"border-left border-bottom table table-bordered table-sm "+(item.approved?"border-success":"border-danger")}>
-                              <thead>
-                                <tr className={item.approved?"table-success":"table-danger"}>
-                                  <th>Request:</th>
-                                  <th>E-mail:</th>
-                                  <th>Agent Name:</th>
-                                  <th>from:</th>
-                                  <th>to:</th>
-                                  <th>comments:</th>
-                                </tr>
-                              </thead>
-                              <tbody>
-                                <tr>
-                                  <td>
-                                    <p>{item.Title}</p>
-                                  </td>
-                                  <td>
-                                    <p>{item.email}</p>
-                                  </td>
-                                  <td>
-                                    <p>{item.sykj}</p>
-                                  </td>
-                                  <td>
-                                    <p>{new Date(item.from).getDate()}-{this.state.dates.months[new Date(item.to).getMonth()]}</p>
-                                  </td>
-                                  <td>
-                                    <p>{new Date(item.to).getDate()}-{this.state.dates.months[new Date(item.to).getMonth()]}</p>
-                                  </td>
-                                  <td><p>{item.comment}</p></td>
-                                </tr>
-                              </tbody>
-                              <tfoot >
-                                <tr >
-                                  <td colSpan={3}>{item.approved?null:<Button className="btn-sm bg-warning" onClick={()=>this.deleteItem(this.state.context, this.state.siteUrl, item.Id).then(res=>this.getSpecificList(res)) } >Delete</Button>}</td>
-                                  <td colSpan={3}>
-                                  {item.approved?<p className="text-success">Already Approved</p>:<Button className="btn-sm bg-success" onClick={()=>this.approveItem('ooo_test',this.state.context, this.state.siteUrl, item.Id, true).then(res=>this.getSpecificList(res))}>Approve</Button>} 
-                                  </td>
-                                </tr>
-                              </tfoot>
-                            </Table>
-                          </div>;
-                }else{return null;}
-              }):<h2>No data available, please refresh</h2>}
-              
+            <Col md={{size: 6, offset: 3}}>
+              {this.state.dataTableFilter!==this.props.context.pageContext.user.email?<h4>List below is filtered by {this.state.user.lob}</h4>:<h4>List below is filtered by your email address</h4>}
+              {this.state.supervisor?<h4>List below is not filtered</h4>:null}
             </Col>
           </Row>
+          <Row>
+            <DataTable 
+              dates={this.state.dates} 
+              list={this.state.list}
+              userEmail={this.state.dataTableFilter} 
+              listValues={this.state.listValues} 
+              selectedDate={this.state.selectedDate} 
+              dayCheck={this.state.dayCheck} 
+              checkDates={checkDates} 
+              deleteItem={this.deleteItem} 
+              approveItem={this.approveItem}
+              getSpecificList={this.getSpecificList}
+              context={this.state.context}
+              siteUrl={this.state.siteUrl}
+              user={this.state.user}>
+            </DataTable>
+          </Row> 
+
           <HolidayNewModal 
             className="" 
             toggle={this.toggle} 
