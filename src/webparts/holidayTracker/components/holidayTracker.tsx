@@ -1,6 +1,6 @@
 import * as React from 'react';
 
-import {Navbar, NavbarBrand, Nav, NavItem, NavLink, Table,Row, Col, Card, Button} from 'reactstrap';
+import {Navbar, NavbarBrand, Nav, NavItem, NavLink, Form,Row, Col, FormGroup, Input,Label, Button} from 'reactstrap';
 import './HolidayTracker.scss';
 import Iuser from '../../interfaces/Iusers';
 import Idates from '../../interfaces/Idates';
@@ -56,7 +56,8 @@ export interface IState {
   dayCheck:boolean;
   request:{};
   dataTableFilter:any;
-
+  selectedLob:any;
+  lobIsSelected:boolean;
 }
 
 export interface ISPList {
@@ -70,6 +71,7 @@ export interface ISPList {
   Comments: string;
   lob: string;
   approved: boolean;
+  
 }
 export interface ISPLists{
   value: ISPList[];
@@ -130,14 +132,26 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
       dayCheck: false,
       request:{},
       supervisor:false,
-      dataTableFilter:this.props.context.pageContext.user.email
+      dataTableFilter:this.props.context.pageContext.user.email,
+      selectedLob:[],
+      lobIsSelected:false 
     };
     this.toggle = this.toggle.bind(this);
     this.checkAgainstPreviousRequests=this.checkAgainstPreviousRequests.bind(this);
     this.getSpecificList= this.getSpecificList.bind(this);
     this.handleDatePicker=this.handleDatePicker.bind(this);
+    this.selectHandleSubmit = this.selectHandleSubmit.bind(this)
+    
   }
+  
+  private selectHandleSubmit(event){
+    let option=event.target.value;
 
+    this.setState({
+      selectedLob: option,
+      lobIsSelected: true
+    },()=>console.log("selected lobs: "+this.state.selectedLob))
+  }
   private toggle() {
     this.setState(prevState=>({
       modal: !prevState.modal
@@ -399,11 +413,42 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
                                     <h3>Supervisor Area</h3> 
                                 </NavLink>
                               </NavItem>)
-                  }
-                })
+                    }
+                  })
                 }
               </Nav>
           </Navbar>
+          {this.state.supervisor || this.state.user.admin?
+          <Navbar color="light" light expand="md" className="clearfix border-bottom border-secondary">
+            <Nav className="mx-auto text-center" navbar pills>
+                <NavItem className="mx-auto">
+                  <NavLink href="#" onClick={()=>this.setState({
+                    dataTableFilter: this.props.context.pageContext.user.email
+                  })}>
+                    <h5>My Holidays</h5>
+                  </NavLink> 
+                </NavItem>
+                <NavItem className="mx-auto"> 
+                  <NavLink href="#" onClick={()=>this.setState({
+                    dataTableFilter: this.state.user.lob
+                  })}>
+                    <h5>Team's holidays</h5>
+                  </NavLink> 
+                </NavItem>
+                <NavItem className="mx-auto">
+                  <Form>
+                    <FormGroup>
+                      <Label for="lobSelect">Line of Buisness</Label>
+                      <Input type="select" name="select" id="lobSelect" onChange={()=>this.selectHandleSubmit(event)}>
+                        {this.state.usersList.reduce((acc,item)=>acc.includes(item)?acc:[...acc,item], []).map(item=>{
+                          return <option>{item.lob}</option>
+                        })}
+                      </Input>
+                    </FormGroup>
+                  </Form>
+                </NavItem>
+              </Nav>
+            </Navbar>:null}  
         </header>
         <section className="mt-5">
           <Row className="mb-5">
@@ -421,15 +466,15 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
           </Row>
           <Row>
             <Col md={{size: 6, offset: 3}}>
-              {this.state.dataTableFilter!==this.props.context.pageContext.user.email?<h4>List below is filtered by {this.state.user.lob}</h4>:<h4>List below is filtered by your email address</h4>}
-              {this.state.supervisor?<h4>List below is not filtered</h4>:null}
+              {this.state.lobIsSelected?<h6>List below is filtered by {this.state.selectedLob}</h6>:null}
+              {this.state.dataTableFilter==this.props.context.pageContext.user.email && this.state.lobIsSelected===false?<h6>List below is filtered by your email address</h6>:null}
             </Col>
           </Row>
           <Row>
             <DataTable 
               dates={this.state.dates} 
               list={this.state.list}
-              userEmail={this.state.dataTableFilter} 
+              dataTableFilter={this.state.dataTableFilter} 
               listValues={this.state.listValues} 
               selectedDate={this.state.selectedDate} 
               dayCheck={this.state.dayCheck} 
@@ -439,7 +484,10 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
               getSpecificList={this.getSpecificList}
               context={this.state.context}
               siteUrl={this.state.siteUrl}
-              user={this.state.user}>
+              userEmail={this.props.context.pageContext.user.email}
+              user={this.state.user}
+              lobIsSelected={this.state.lobIsSelected}
+              lob={this.state.selectedLob}>
             </DataTable>
           </Row> 
 

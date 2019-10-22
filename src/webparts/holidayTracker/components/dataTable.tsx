@@ -3,10 +3,12 @@ import { Button, Col, Table} from 'reactstrap';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import Idates from '../../interfaces/Idates';
 import { ISPList } from './HolidayTracker';
+import usersMock from '../../variables/usersMock';
 
 interface IholidaysMProps{
   user:any;
-  userEmail:any;
+  userEmail:string;
+  dataTableFilter:any;
   list:ISPList;
   listValues:any;
   selectedDate:Date;
@@ -18,6 +20,8 @@ interface IholidaysMProps{
   context:any;
   siteUrl:string;
   getSpecificList:(res)=>void;
+  lobIsSelected:boolean;
+  lob:any;
 }
 
 class DataTable extends React.Component<IholidaysMProps> {
@@ -26,13 +30,27 @@ class DataTable extends React.Component<IholidaysMProps> {
       return (
         <Col md="12">
 
-              {this.props.list!==undefined?this.props.listValues.filter(item=>{return item.email == this.props.userEmail}).map(item=>{
+              {this.props.list!==undefined?this.props.listValues.filter(item=>{
+                if(this.props.lobIsSelected && this.props.lob){
+                  console.log('param : '+this.props.lobIsSelected+" & "+ this.props.lob)
+                  return item.lob==this.props.lob
+
+                }else{
+                  if(this.props.dataTableFilter == this.props.userEmail){
+                    return item.email == this.props.dataTableFilter;
+                  }else if (this.props.dataTableFilter == this.props.user.lob){
+                   
+                    return item.lob == this.props.dataTableFilter;
+                  }
+                }
+              }).map(item=>{
                 if(this.props.checkDates(item.from, item.to, this.props.selectedDate.toString(), this.props.dayCheck)){
                   
                 return    <div className= "table-responsive mb-5">
                             <Table className={"border-left border-bottom table table-bordered table-sm "+(item.approved?"border-success":"border-danger")}>
                               <thead>
                                 <tr className={item.approved?"table-success":"table-danger"}>
+                                  <th>Lob:</th>
                                   <th>Request:</th>
                                   <th>E-mail:</th>
                                   <th>Agent Name:</th>
@@ -43,6 +61,9 @@ class DataTable extends React.Component<IholidaysMProps> {
                               </thead>
                               <tbody>
                                 <tr>
+                                  <td>
+                                    <p>{item.lob}</p>
+                                  </td>
                                   <td>
                                     <p>{item.Title}</p>
                                   </td>
