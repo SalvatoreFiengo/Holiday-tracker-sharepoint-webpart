@@ -3,7 +3,6 @@ import * as crud from './crudService';
 import { Button, Form, FormGroup, Label, Input, FormText, Collapse } from 'reactstrap';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import HolidayTableComponent from './holidayTableComponent';
-import { array } from 'prop-types';
 
 interface InewFormProps {
   context: WebPartContext;
@@ -24,6 +23,7 @@ interface InewFormProps {
   checkRequest:(request:any)=>boolean;
   getLists:(response)=>void;
   listValues:any;
+  usersList:any;
 }
 
 interface IformState {
@@ -90,13 +90,13 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
   }
 
   public handleDatePickerFrom=(date,month)=>{
-    const selected = new Date(new Date().getFullYear(), month, date).toISOString();
+    const selected = new Date(new Date().getFullYear(), month, date).toLocaleDateString('en-GB');
     this.setState({
       from: selected
     });
   }
   public handleDatePickerTo=(date,month)=>{
-    const selected = new Date(new Date().getFullYear(), month, date).toISOString();
+    const selected = new Date(new Date().getFullYear(), month, date).toLocaleDateString('en-GB');
     
     this.setState({
       to: selected,
@@ -105,7 +105,7 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
   }
 
   private checkDateValidity=(from, to)=>{
-    console.log(new Date(from).getDate() +" is less than "+new Date(to).getDate());
+
     if(from === "" || to === ""){
       return 'text-warning';
     }
@@ -139,7 +139,7 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
         </FormGroup>    
         <FormGroup>
         <Button onClick={()=>this.props.toggleDataPickerFrom()} id="from" className="d-inline-block">From: </Button>
-          <span className="d-inline-block border text-center w-50 ml-5"> <p className={this.state.dateValidity}>{this.state.from.slice(0,15)}</p></span>
+          <span className="d-inline-block border text-center w-50 ml-5"> <p className={this.state.dateValidity}>{this.state.from}</p></span>
           <Collapse isOpen={this.props.datePickerFrom}>
             <HolidayTableComponent 
               prev={(count)=>this.props.prev(count)} 
@@ -155,7 +155,7 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
         </FormGroup>
         <FormGroup>
           <Button onClick={()=>this.props.toggleDataPickerTo()} id="to" className="d-inline-block">To: </Button>
-          <span className="d-inline-block border text-center w-50 ml-5"> <p className={this.state.dateValidity}>{this.state.to.slice(0,15)}</p> </span>
+          <span className="d-inline-block border text-center w-50 ml-5"> <p className={this.state.dateValidity}>{this.state.to}</p> </span>
           <Collapse isOpen={this.props.datePickerTo}>
             <HolidayTableComponent 
               prev={(count)=>this.props.prev(count)} 
@@ -170,9 +170,9 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
           </Collapse>
         </FormGroup>
         <FormGroup>
-          <Label for="lob">LOB</Label>
+          <Label for="lob">Team (Line of Business)</Label>
           <Input type="select" name="selectLob" id="lobSelect" value={this.state.lobSelect} onChange={this.handleChange}>
-            {this.props.listValues.map(item=>item.lob).reduce((accumulator,currentValue)=>{
+            {this.props.usersList.map(item=>item.lob).reduce((accumulator,currentValue)=>{
               if(accumulator.indexOf(currentValue)===-1){
                 accumulator.push(currentValue);
               }

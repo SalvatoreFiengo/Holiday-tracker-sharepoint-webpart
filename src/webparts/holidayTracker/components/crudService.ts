@@ -89,6 +89,31 @@ export let _createItem=(list,ctx, siteUrl, request):Promise<void> =>{
       return response.json();
     }).then(()=>_getSpecificList(list,ctx, siteUrl));
   };
+export let _createAgent=(list,ctx, siteUrl, request):Promise<void> =>{
+    const body: string= JSON.stringify({
+      '__metadata': {
+        'type': 'SP.Data.AgentsListItem'
+      },
+      'Title':"",
+      'agentName':request.agentName,
+      'agentEmail':request.email,
+      'lob':request.lobSelect,
+      'role':request.role
+    }); 
+
+    return ctx.spHttpClient.post(siteUrl+`/_api/web/lists/getbytitle('`+list+`')/items`,
+    SPHttpClient.configurations.v1,
+    {
+      headers: {
+        'Accept': 'application/json;odata=nometadata',
+        'Content-type': 'application/json;odata=verbose',
+        'odata-version': ''
+      },
+      body: body
+    }).then((response: SPHttpClientResponse): Promise<any>=>{
+      return response.json();
+    }).then(()=>_getSpecificList(list,ctx, siteUrl));
+  };
 
   export let _updateItemApproval = (list, ctx, siteUrl, id, approval):Promise<ISPList>=>{
     const body: string= JSON.stringify({

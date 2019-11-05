@@ -24,6 +24,7 @@ interface IholidaysMProps{
     checkRequest: (request:any)=>boolean;
     getLists: (response)=>void;
     listValues:any;
+    usersList:any
 
 
 }
@@ -57,6 +58,7 @@ class HolidayNewModal extends React.Component<IholidaysMProps> {
             checkRequest={this.props.checkRequest}
             getLists={this.props.getLists}
             listValues={this.props.listValues}
+            usersList={this.props.usersList}
             >{this.props.children}</HolydayNewForm>
           </ModalBody>
         </Modal>
