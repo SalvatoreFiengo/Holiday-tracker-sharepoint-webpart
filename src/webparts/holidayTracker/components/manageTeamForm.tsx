@@ -1,14 +1,16 @@
 import * as React from 'react';
 import * as crud from './crudService';
-import { Button, Form, FormGroup, Label, Input, Col } from 'reactstrap';
+import { Button, Form, FormGroup, Label, Input, Col, Card } from 'reactstrap';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 
 interface IManageTeamFormProps {
   context: WebPartContext;
   siteUrl:string;
-  toggle:()=>void;
+  toggle:(user?:any)=>void;
   getLists:(response)=>void;
   usersList:any;
+  user?:any;
+  edit?:boolean;
 }
 
 interface IManageTeamFormState {
@@ -83,52 +85,61 @@ export default class ManageTeamForm extends React.Component<IManageTeamFormProps
   }
   public render() {
     return (
-      <Form onSubmit={this.handleSubmit}>
-        <FormGroup>
-          <Label for="agentName">Name </Label>
-          <Input type="text" name="agentName" id="agentName" placeholder="name" value={this.state.agentName} onChange={this.handleChange} requested/>
-        </FormGroup>
-        <FormGroup>
-          <Label for="agentEmail">E-mail</Label>
-          <Input type="email" name="email" id="agentEmail" placeholder="e-mail@domain.com" value={this.state.agentEmail} onChange={this.handleChange} requested/>
-        </FormGroup>
-        <FormGroup>
-            <Label for="role">Role</Label>
-            <Input type="select" name="role" id="role" placeholder="role" onChange={this.handleChange}>
-                <option>Agent</option>
-                <option>Team Lead</option>
-                <option>Manager</option>
-            </Input>
-        </FormGroup>
-        {this.props.usersList.map((item)=>{
-            if(item.agentEmail===this.props.context.pageContext.user.email){
-                if( item.role === "Admin"){
-                    return(
-                        <FormGroup row>
-                            <Col md={2}>
-                                <Label for="admin">Admin</Label>
-                            </Col>
-                            <Col md="10">
-                                <FormGroup check>
-                                    <Input type="checkbox" name="admin" id="admin" onChange={this.handleChange}/>
-                                </FormGroup>
-                            </Col>
-                        </FormGroup>)}
+      <div>
+        {this.props.user === this.state.currentUser?
+        <Card body inverse color="danger">  
+          <h4 className="text-warning">Error!</h4>
+          <h4 className="text-warning">cannot modify your own entries</h4>
+          <Button onClick={this.props.toggle} color="secondary">Back</Button>
+        </Card>:
+      
+        <Form onSubmit={this.handleSubmit}>
+          <FormGroup>
+            <Label for="agentName">name</Label>
+            <Input type="text" name="agentName" id="agentName" placeholder="name" value={this.props.user? this.props.user:this.state.agentName} onChange={this.handleChange} requested/>
+          </FormGroup>
+          <FormGroup>
+            <Label for="agentEmail">E-mail</Label>
+            <Input type="email" name="email" id="agentEmail" placeholder="e-mail@domain.com" value={this.state.agentEmail} onChange={this.handleChange} requested/>
+          </FormGroup>
+          <FormGroup>
+              <Label for="role">Role</Label>
+              <Input type="select" name="role" id="role" placeholder="role" onChange={this.handleChange}>
+                  <option>Agent</option>
+                  <option>Team Lead</option>
+                  <option>Manager</option>
+              </Input>
+          </FormGroup>
+          {this.props.usersList.map((item)=>{
+              if(item.agentEmail===this.props.context.pageContext.user.email){
+                  if( item.role === "Admin"){
+                      return(
+                          <FormGroup row>
+                              <Col md={2}>
+                                  <Label for="admin">Admin</Label>
+                              </Col>
+                              <Col md="10">
+                                  <FormGroup check>
+                                      <Input type="checkbox" name="admin" id="admin" onChange={this.handleChange}/>
+                                  </FormGroup>
+                              </Col>
+                          </FormGroup>)}
+                  }
+              })}
+          <FormGroup>
+            <Label for="lob">Team (Line of Business)</Label>
+            <Input type="select" name="selectLob" id="lobSelect" value={this.state.lobSelect} onChange={this.handleChange}>
+              {this.props.usersList.map(item=>item.lob).reduce((accumulator,currentValue)=>{
+                if(accumulator.indexOf(currentValue)===-1){
+                  accumulator.push(currentValue);
                 }
-            })}
-        <FormGroup>
-          <Label for="lob">Team (Line of Business)</Label>
-          <Input type="select" name="selectLob" id="lobSelect" value={this.state.lobSelect} onChange={this.handleChange}>
-            {this.props.usersList.map(item=>item.lob).reduce((accumulator,currentValue)=>{
-              if(accumulator.indexOf(currentValue)===-1){
-                accumulator.push(currentValue);
-              }
-              return accumulator;
-            },[]).map(item=>{return <option>{item}</option>;})}
-          </Input>
-        </FormGroup>
-        <Button disabled={false} > Submit </Button>
-      </Form>
+                return accumulator;
+              },[]).map(item=>{return <option>{item}</option>;})}
+            </Input>
+          </FormGroup>
+          <Button disabled={false} > Submit </Button>
+        </Form>}
+      </div>
     );
      
   }

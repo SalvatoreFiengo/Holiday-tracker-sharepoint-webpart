@@ -1,9 +1,7 @@
 import * as React from 'react';
 import { Button, Col, Table} from 'reactstrap';
-import { WebPartContext } from '@microsoft/sp-webpart-base';
 import Idates from '../../interfaces/Idates';
 import { ISPList } from './HolidayTracker';
-import usersMock from '../../variables/usersMock';
 
 interface IholidaysMProps{
   user:any;
