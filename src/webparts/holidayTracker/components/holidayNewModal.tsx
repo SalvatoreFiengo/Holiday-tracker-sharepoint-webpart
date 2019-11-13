@@ -23,6 +23,7 @@ interface IholidaysMProps{
     toggleDataPickerFrom: ()=>void;
     checkRequest: (request:any)=>boolean;
     getLists: (response)=>void;
+    setLists: (list,res)=>void
     listValues:any;
     usersList:any
 
@@ -57,6 +58,7 @@ class HolidayNewModal extends React.Component<IholidaysMProps> {
             toggle={this.props.toggle}
             checkRequest={this.props.checkRequest}
             getLists={this.props.getLists}
+            setLists={this.props.setLists}
             listValues={this.props.listValues}
             usersList={this.props.usersList}
             >{this.props.children}</HolydayNewForm>

@@ -46,21 +46,21 @@ export  let getSpLists=(response)=>{
         }, ()=>{console.log("list updated");});
     };
 
-    let _getListData=(ctx, siteUrl): Promise<ISPLists> =>{
-        if(ctx !== undefined){
-        return ctx.spHttpClient.get(siteUrl + `/_api/web/lists?$filter=Hidden eq false`, SPHttpClient.configurations.v1)
-            .then((response: SPHttpClientResponse) => {
-            return response.json();
-            });
-        }
-    };
+let _getListData=(ctx, siteUrl): Promise<ISPLists> =>{
+    if(ctx !== undefined){
+    return ctx.spHttpClient.get(siteUrl + `/_api/web/lists?$filter=Hidden eq false`, SPHttpClient.configurations.v1)
+        .then((response: SPHttpClientResponse) => {
+        return response.json();
+        });
+    }
+};
 
 export let _getSpecificList=(list,ctx, siteUrl): Promise<ISPList>=> {
-    return ctx.spHttpClient.get(siteUrl + `/_api/web/Lists/GetByTitle('`+list+`')/items`, SPHttpClient.configurations.v1)
-        .then((response: SPHttpClientResponse) => {
-            return response.json();
-        });
-    };
+  return ctx.spHttpClient.get(siteUrl + `/_api/web/Lists/GetByTitle('`+list+`')/items`, SPHttpClient.configurations.v1)
+      .then((response: SPHttpClientResponse) => {
+          return response.json();
+      });
+};
 
 export let _createItem=(list,ctx, siteUrl, request):Promise<void> =>{
     const body: string= JSON.stringify({
@@ -98,7 +98,9 @@ export let _createAgent=(list,ctx, siteUrl, request):Promise<void> =>{
       'agentName':request.agentName,
       'agentEmail':request.email,
       'lob':request.lobSelect,
-      'role':request.role
+      'role':request.role,
+      'admin':request.admin==="true"?true:false,
+      'supervisor':request.supervisor==="true"?true:false
     }); 
 
     return ctx.spHttpClient.post(siteUrl+`/_api/web/lists/getbytitle('`+list+`')/items`,
@@ -135,6 +137,33 @@ export let _createAgent=(list,ctx, siteUrl, request):Promise<void> =>{
         body:body
       }).then(()=>_getSpecificList(list, ctx, siteUrl));
   };
+
+  export let _updateTeamMember = (list, ctx, siteUrl, id, request):Promise<ISPList>=>{
+    const body: string= JSON.stringify({
+      '__metadata': {
+        'type': 'SP.Data.AgentsListItem'
+      },
+      'Title':"",
+      'agentName':request.agentName,
+      'agentEmail':request.email,
+      'lob':request.lobSelect,
+      'role':request.role,
+      'admin':request.admin==="true"?true:false,
+      'supervisor':request.supervisor==="true"?true:false
+    }); 
+    return ctx.spHttpClient.post(siteUrl+`/_api/web/lists/getbytitle('`+list+`')/GetItemById(`+id+`)`,
+      SPHttpClient.configurations.v1,
+      {
+        headers: {
+          'Accept': 'application/json;odata=nometadata',
+          'Content-type': 'application/json;odata=verbose',
+          'odata-version': '',
+          'IF-MATCH': '*',
+          'X-HTTP-Method': 'MERGE'
+        },
+        body:body
+      }).then(()=>_getSpecificList(list, ctx, siteUrl));
+  };
   export let _deleteItem = (list,ctx, siteUrl, id):Promise<ISPList>=>{
 
       return ctx.spHttpClient.post(siteUrl+`/_api/web/lists/getbytitle('`+list+`')/GetItemById(`+id+`)`,
@@ -149,3 +178,17 @@ export let _createAgent=(list,ctx, siteUrl, request):Promise<void> =>{
         },
       }).then(()=>_getSpecificList(list,ctx, siteUrl));
   };
+  export let _deleteTeamMember = (list,ctx, siteUrl, id):Promise<ISPList>=>{
+
+    return ctx.spHttpClient.post(siteUrl+`/_api/web/lists/getbytitle('`+list+`')/GetItemById(`+id+`)`,
+    SPHttpClient.configurations.v1,
+    {
+      headers: {
+        'Accept': 'application/json;odata=nometadata',
+        'Content-type': 'application/json;odata=verbose',
+        'odata-version': '',
+        'IF-MATCH': '*',
+        'X-HTTP-Method': 'DELETE'
+      },
+    }).then(()=>_getSpecificList(list, ctx, siteUrl));;
+};

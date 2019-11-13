@@ -22,6 +22,7 @@ interface InewFormProps {
   toggle:()=>void;
   checkRequest:(request:any)=>boolean;
   getLists:(response)=>void;
+  setLists: (list,res)=>void
   listValues:any;
   usersList:any;
 }
@@ -82,7 +83,9 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
     };
 
     if(this.props.checkRequest(request)){
-      crud._createItem('ooo_test',this.props.context,this.props.siteUrl,request).then(res=>this.props.getLists(res));
+      crud._createItem('ooo_test',this.props.context,this.props.siteUrl,request).then(res=>this.props.getLists(res)).then((res)=>this.props.setLists("ooo_test",res));
+    }else{
+      alert("Not sent to SP")
     }
     this.props.toggle();
 
@@ -90,13 +93,13 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
   }
 
   public handleDatePickerFrom=(date,month)=>{
-    const selected = new Date(new Date().getFullYear(), month, date).toLocaleDateString('en-GB');
+    const selected = new Date(new Date().getFullYear(), month, date)
     this.setState({
       from: selected
     });
   }
   public handleDatePickerTo=(date,month)=>{
-    const selected = new Date(new Date().getFullYear(), month, date).toLocaleDateString('en-GB');
+    const selected = new Date(new Date().getFullYear(), month, date);
     
     this.setState({
       to: selected,
@@ -139,7 +142,7 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
         </FormGroup>    
         <FormGroup>
         <Button onClick={()=>this.props.toggleDataPickerFrom()} id="from" className="d-inline-block">From: </Button>
-          <span className="d-inline-block border text-center w-50 ml-5"> <p className={this.state.dateValidity}>{this.state.from}</p></span>
+          <span className="d-inline-block border text-center w-50 ml-5"> <p className={this.state.dateValidity}>{this.state.from.toLocaleDateString('en-GB')}</p></span>
           <Collapse isOpen={this.props.datePickerFrom}>
             <HolidayTableComponent 
               prev={(count)=>this.props.prev(count)} 
@@ -155,7 +158,7 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
         </FormGroup>
         <FormGroup>
           <Button onClick={()=>this.props.toggleDataPickerTo()} id="to" className="d-inline-block">To: </Button>
-          <span className="d-inline-block border text-center w-50 ml-5"> <p className={this.state.dateValidity}>{this.state.to}</p> </span>
+          <span className="d-inline-block border text-center w-50 ml-5"> <p className={this.state.dateValidity}>{this.state.to.toLocaleDateString('en-GB')}</p> </span>
           <Collapse isOpen={this.props.datePickerTo}>
             <HolidayTableComponent 
               prev={(count)=>this.props.prev(count)} 

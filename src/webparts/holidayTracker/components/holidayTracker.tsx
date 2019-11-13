@@ -1,6 +1,26 @@
 import * as React from 'react';
 
-import {Navbar, NavbarBrand, Nav, NavItem, NavLink, Form,Row, Col, FormGroup, Input,Label, Button, Collapse} from 'reactstrap';
+import {
+  Navbar, 
+  NavbarBrand, 
+  Nav, 
+  NavItem, 
+  NavLink, 
+  Form,Row, 
+  Col, 
+  FormGroup, 
+  Input,Label, 
+  Button, 
+  Collapse, 
+  Modal, 
+  ModalBody, 
+  ModalHeader,
+  CardGroup,
+  Card,
+  CardHeader,
+  CardBody,
+  CardText
+} from 'reactstrap';
 import './HolidayTracker.scss';
 
 import Idates from '../../interfaces/Idates';
@@ -136,8 +156,9 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
     this.checkAgainstPreviousRequests=this.checkAgainstPreviousRequests.bind(this);
     this.getSpecificList= this.getSpecificList.bind(this);
     this.handleDatePicker=this.handleDatePicker.bind(this);
-    this.selectHandleSubmit = this.selectHandleSubmit.bind(this)
-    
+    this.selectHandleSubmit = this.selectHandleSubmit.bind(this);
+    this.setLists= this.setLists.bind(this)
+    this.toggleSupervisorsArea=this.toggleSupervisorsArea.bind(this);
   }
   
   private selectHandleSubmit(event){
@@ -163,7 +184,11 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
       modal: !prevState.modal
     }));
   }
-
+  public toggleSupervisorsArea(){
+    this.setState((prevState)=>({
+      supervisorArea:!prevState.supervisorArea
+    }))
+  }
   public handleDatePicker(day:number, month:number, all=false){
     if(all){
       this.setState({
@@ -191,10 +216,11 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
 
   public componentDidMount(): void {
     this._renderSpecificListAsync('ooo_test', this.state.context, this.state.siteUrl);
-    this._renderSpecificListAsync('agents', this.state.context, this.state.siteUrl);
+    this._renderSpecificListAsync('Agents', this.state.context, this.state.siteUrl);
     this.setState({
       selectedLob:this.state.user.lob
     })
+    console.log("is this happening? "+this.state.usersList)
   }
 
   public checkAgainstPreviousRequests(request):boolean {
@@ -213,12 +239,12 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
           && (dateMonthFrom === itemDateMonthFrom || dateMonthTo === itemDateMonthTo)
           && (dateMonthFrom === itemDateMonthTo || dateMonthTo === itemDateMonthFrom)){
             alert("Request invaid. Please check whether you have older requests for same period");
-            console.log(dateMonthFrom)
+            
             return false;
   
           }
           else{
-            console.log("else"+dateMonthFrom)
+           
             this.setState({
               request: request,
             });
@@ -283,22 +309,25 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
 
     return crud._deleteItem('ooo_test',ctx, siteUrl, id);
   }
-
+  private setLists=(list,res)=>{
+    if(list === 'ooo_test'){
+      return this.setState({
+        listValues: this.getSpecificList(res)
+      });
+    }else if(list === 'Agents'){
+      return this.setState({
+        usersList: this.getSpecificList(res)
+      },()=>console.log("list update? "+this.state.usersList[0].agentName));
+    } 
+  }
   public _renderSpecificListAsync(list,ctx, siteUrl) {
-    crud._getSpecificList(list,ctx, siteUrl).then((res)=>{
-      if(list === 'ooo_test'){
-        this.setState({
-          listValues: this.getSpecificList(res)
-        });
-      }else if(list === 'agents'){
-        this.setState({
-          usersList: this.getSpecificList(res)
-        },()=>{console.log(this.state.usersList[this.props.context.pageContext.user.email])})
-      } 
-    }).then(()=>{
+    crud._getSpecificList(list,ctx, siteUrl)
+    .then((res)=>this.setLists(list,res))
+    .then(()=>{
       this.state.usersList.map(item=>{
+        
         if(item.agentEmail == this.props.context.pageContext.user.email){
-        this.setState({
+        return this.setState({
           user:item
         });
         }else{
@@ -414,7 +443,6 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
         <header>
           <Row>
             <Col md="12">
-          
               <Navbar color="light" light expand="md" className="clearfix border-bottom border-secondary">
                 <div className="mh-36 pr-2 float-left border-right border-secondary ">
                   <NavbarBrand className="mx-3 text-center " href="/"><h1>Holiday Tracker</h1></NavbarBrand>
@@ -432,9 +460,7 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
                       if(item.agentEmail===this.props.context.pageContext.user.email && item.admin || 
                         item.agentEmail===this.props.context.pageContext.user.email && item.supervisor){
                           return (<NavItem className="mx-auto">
-                                    <NavLink href="#" onClick={()=>this.setState((prevState)=>({
-                                      supervisorArea:!prevState.supervisorArea
-                                    }))}>
+                                    <NavLink href="#" onClick={this.toggleSupervisorsArea}>
                                         <h3>Supervisor Area</h3> 
                                     </NavLink>
                                   </NavItem>)
@@ -445,83 +471,95 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
               </Navbar>
             </Col>
           </Row>
-          {this.state.supervisorArea && (this.state.supervisor || this.state.user.admin)?
-          <div>
+          {this.state.supervisorArea?
+          <Row>
+            <Col md="12">
             <Row>
-              <Col md="12">
-                <Navbar color="light" light expand="md" className="clearfix border-bottom border-secondary">
-                  <Nav className="w-75 mx-auto text-center" navbar pills>
-                    <NavItem className="mx-auto text-center">
-                      <NavLink
-                        className={this.state.dataTableFilter==this.props.context.pageContext.user.email && this.state.lobIsSelected===false? " border border-secondary": null} 
-                        href="#" 
+              <Col md="4">
+              <Card body inverse color="info">
+                <CardHeader >My Leave Requests</CardHeader>
+                <CardBody>
+                    <CardText>
+                      Table filtered with all requests made using {this.props.context.pageContext.user.email}
+                    </CardText>
+                    <Button 
+                        color="secondary" 
+                        className="btn-sm"
                         onClick={()=>this.setState({
                           dataTableFilter: this.props.context.pageContext.user.email,
                           lobIsSelected:false,
                           teamStructure:false
-                      })}>
-                        <h5>My Leave Requests</h5>
-                      </NavLink> 
-                    </NavItem>
-                    <NavItem className="mx-auto text-center ml-5"> 
-                      <NavLink 
-                        className={this.state.dataTableFilter==this.state.user.lob && !this.state.lobIsSelected?"border border-secondary":null}
-                        href="#" 
+                      })}>Go</Button>
+                </CardBody>
+              </Card>
+              </Col>
+              <Col md="4">
+              <Card body inverse color="info">
+                <CardHeader >{this.state.user.lob} Leave Requests</CardHeader>
+                <CardBody>
+                    <CardText>
+                      Table filtered with all requests made by {this.state.user.lob}
+                    </CardText>
+                    <Button 
+                        color="secondary" 
+                        className="btn-sm"
                         onClick={()=>this.setState({
                           dataTableFilter: this.state.user.lob,
                           lobIsSelected:false,
                           selectedLob:this.state.user.lob
-                      })}>
-                        <h5>{this.state.user.lob} Leave Requests</h5>
-                      </NavLink> 
-                    </NavItem>
-                    <NavItem className="mx-auto text-center">
-                      <Form>
-                        <FormGroup>
-                          <Label for="lobSelect">Line of Buisness</Label>
-                          <Input type="select" name="select" id="lobSelect" onChange={()=>this.selectHandleSubmit(event)}>
-                            <option selected>None</option>
-                            {this.state.usersList
-                              .reduce((acc,item)=>acc.includes(item)?acc:[...acc,item], [])
-                              .map(item=>[...item.lob])
-                              .reduce((acc,lob)=>acc.includes(lob)?acc:[...acc,lob], [])
-                              .map(lob=>{return <option>{lob}</option>})
-                            }
-                          </Input>
-                        </FormGroup>
-                      </Form>
-                    </NavItem>
-                  </Nav>
-                </Navbar>
+                      })}>Go</Button>
+                </CardBody>
+              </Card>
               </Col>
+              <Col md="4">
+                <Card body inverse color="info">
+                  <CardHeader >Select Line of Buisness</CardHeader>
+                  <CardBody>
+                    <CardText>
+                      Get access to data from selected Lne of business
+                    </CardText>
+                    <Form>
+                      <FormGroup>
+                        <Label for="lobSelect">Line of Buisness</Label>
+                        <Input type="select" name="select" id="lobSelect" onChange={()=>this.selectHandleSubmit(event)}>
+                          <option selected>None</option>
+                          {this.state.usersList
+                            .reduce((acc,item)=>acc.includes(item)?acc:[...acc,item], [])
+                            .map(item=>[...item.lob])
+                            .reduce((acc,lob)=>acc.includes(lob)?acc:[...acc,lob], [])
+                            .map(lob=>{return <option key={lob.name}>{lob}</option>})
+                          }
+                        </Input>
+                      </FormGroup>
+                    </Form>
+                  </CardBody>
+                </Card> 
+              </Col> 
             </Row>
-            <Row>
-              <Col md="12">
-                <Navbar color="light" light expand="md" className="clearfix">
-                  <Nav className="mx-auto text-center" navbar pills>
-                    <Row>
-                      <Col md="12">
-                        <NavItem className="text-center"> 
-                          {this.state.lobIsSelected || this.state.dataTableFilter==this.state.user.lob?
-                            <NavLink 
-                              className={this.state.teamStructure?"border border-secondary":null}
-                              href="#" 
-                              onClick={()=>{
-                              this.setState((prevState)=>({
-                                teamStructure:!prevState.teamStructure
-                              }))
-                          }}>
-                            
-                            <h5>Go To: <em>{this.state.selectedLob?this.state.selectedLob:this.state.dataTableFilter}</em> {this.state.teamStructure?"Leave Requests":"Structure"}</h5>
-                          </NavLink>:null}  
-                        </NavItem>
-                      </Col>
-                    </Row>
-                  </Nav>
-                </Navbar>
-              </Col>
-            </Row>
-          </div>:null}    
+            <Navbar color="light" light expand="md" className="clearfix">
+              <Nav className="mx-auto text-center" navbar pills>
+                <Row>
+                  <Col md="12">
+                    <NavItem className="text-center"> 
+                      {this.state.lobIsSelected || this.state.dataTableFilter==this.state.user.lob?
+                        <NavLink 
+                          className={this.state.teamStructure?"border border-secondary":null}
+                          href="#" 
+                          onClick={()=>{
+                          this.setState((prevState)=>({
+                            teamStructure:!prevState.teamStructure
+                          }))
+                      }}>
+                        
+                        <h5>Go To: <em>{this.state.selectedLob?this.state.selectedLob:this.state.dataTableFilter}</em> {this.state.teamStructure?"Leave Requests":"Structure"}</h5>
+                      </NavLink>:null}  
+                    </NavItem>
+                  </Col>
+                </Row>
+              </Nav>
+            </Navbar>
+            </Col>
+          </Row>:null} 
         </header>
         <section className="mt-5 container-fluid">
 
@@ -534,9 +572,9 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
                   usersList={this.state.usersList} 
                   selectedLob= {this.state.selectedLob?this.state.selectedLob:this.state.dataTableFilter}
                   getLists={this.getSpecificList}
+                  setLists={this.setLists}
                   context={this.state.context} 
-                  siteUrl={this.props.siteUrl}
-                  >
+                  siteUrl={this.props.siteUrl}>
 
                 </SupervsorsDashboard>
               </Collapse>:null}
@@ -584,6 +622,7 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
               </DataTable>
             </Row> 
           </Collapse>
+
           <HolidayNewModal 
             className="" 
             toggle={this.toggle} 
@@ -604,6 +643,7 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
             toggleDataPickerFrom={this.toggleDataPickerFrom}
             checkRequest={this.checkAgainstPreviousRequests}
             getLists={this.getSpecificList}
+            setLists={this.setLists}
             listValues={this.state.listValues}
             usersList={this.state.usersList}
           > {this.props.children}</HolidayNewModal>
