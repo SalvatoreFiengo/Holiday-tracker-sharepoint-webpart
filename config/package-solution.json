@@ -10,15 +10,7 @@
       "title": "holiday-tracker-web-part-client-side-solution",
       "description": "holiday-tracker-web-part-client-side-solution",
       "id": "39f518dc-f245-4a9e-9997-0c38f78dee68",  
-      "version": "1.0.0.0",
-      "assets": {
-        "elementManifests": [
-          "elements.xml"
-        ],
-        "elementFiles":[
-          "schema.xml"
-        ]
-      }
+      "version": "1.0.0.0"
     }]
   },
   "paths": {

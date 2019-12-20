@@ -5,6 +5,7 @@ export default interface Idates{
     yearStart:Date;
     yearEnd:Date;
     months:string[];
+    days:string[];
     firstLastDayOfMonth:(choice?:number, month?:number,year?:number)=>Date;
     weeksByMonth:(dateFirst:Date,dateSecond:Date,all:boolean|undefined,n?:number)=> number[];
     getDateObj:(date:Date, user:Iuser, arr:[[Date,Iuser]])=>void;

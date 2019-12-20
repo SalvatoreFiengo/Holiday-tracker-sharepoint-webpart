@@ -16,7 +16,7 @@ interface IholidaysMProps{
     next:(count:number)=>void;
     count:number;
     dateChosen:Date;
-    handleDatePicker:(date,month,key?)=>void;
+    handleDatePicker:(date,month,boolean?)=>void;
     datePickerTo:boolean;
     datePickerFrom: boolean;
     toggleDataPickerTo: ()=>void;
@@ -25,9 +25,9 @@ interface IholidaysMProps{
     getLists: (response)=>void;
     setLists: (list,res)=>void
     listValues:any;
-    usersList:any
-
-
+    usersList:any;
+    dayBordered:boolean;
+    dayFromCalendar:number
 }
 
 
@@ -61,6 +61,8 @@ class HolidayNewModal extends React.Component<IholidaysMProps> {
             setLists={this.props.setLists}
             listValues={this.props.listValues}
             usersList={this.props.usersList}
+            dayBordered={this.props.dayBordered}
+            dayFromCalendar={this.props.dayFromCalendar}
             >{this.props.children}</HolydayNewForm>
           </ModalBody>
         </Modal>

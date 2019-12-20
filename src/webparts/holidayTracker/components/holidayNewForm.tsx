@@ -3,6 +3,7 @@ import * as crud from './crudService';
 import { Button, Form, FormGroup, Label, Input, FormText, Collapse } from 'reactstrap';
 import { WebPartContext } from '@microsoft/sp-webpart-base';
 import HolidayTableComponent from './holidayTableComponent';
+import dates from '../../variables/dates';
 
 interface InewFormProps {
   context: WebPartContext;
@@ -25,6 +26,8 @@ interface InewFormProps {
   setLists: (list,res)=>void
   listValues:any;
   usersList:any;
+  dayBordered:boolean;
+  dayFromCalendar:number
 }
 
 interface IformState {
@@ -62,7 +65,6 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
     
     let key:string = event.target.id;
     let value:string = event.target.value;
-    console.log(key+" is "+value);
     this.setState({
       [key]:value
     });
@@ -76,33 +78,38 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
       email : event.target.email.value,
       leaveSelect: event.target.selectReqType.value,
       lobSelect: event.target.selectLob.value,
-      comments: event.target.comments.value,
+      comments: new Date().toLocaleDateString('en-GB')+"  "+"-------------"+"  "+event.target.comments.value,
       from : new Date(this.state.from),
       to: new Date(this.state.to)
 
     };
 
     if(this.props.checkRequest(request)){
-      crud._createItem('ooo_test',this.props.context,this.props.siteUrl,request).then(res=>this.props.getLists(res)).then((res)=>this.props.setLists("ooo_test",res));
+      crud._createItem('ooo_test',this.props.context,this.props.siteUrl,request).then((res)=>this.props.setLists('ooo_test',res));
     }else{
-      alert("Not sent to SP")
+      alert("Not updated at screen or sent to SP. Please contact your administrator")
     }
     this.props.toggle();
 
   
   }
 
-  public handleDatePickerFrom=(date,month)=>{
-    const selected = new Date(new Date().getFullYear(), month, date)
+  public handleDatePickerFrom=(date,month,year)=>{
+  
+    const selected = new Date(year,month,date).toISOString();
+    const dateAtScreenFrom = new Date(year,month,date).toLocaleDateString('en-GB')
+
     this.setState({
-      from: selected
+      from: selected,
+      dateAtScreenFrom : dateAtScreenFrom
     });
   }
-  public handleDatePickerTo=(date,month)=>{
-    const selected = new Date(new Date().getFullYear(), month, date);
-    
+  public handleDatePickerTo=(date,month,year)=>{
+    const selected = new Date(year,month,date).toISOString();
+    const dateAtScreenTo = new Date(year,month,date).toLocaleDateString('en-GB')
     this.setState({
       to: selected,
+      dateAtScreenTo:dateAtScreenTo,
       dateValidity:this.checkDateValidity(selected, this.state.from)
     });
   }
@@ -112,7 +119,9 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
     if(from === "" || to === ""){
       return 'text-warning';
     }
-    if (new Date(from).getDate()< new Date(to).getDate()){
+    if (new Date(from).getDate()< new Date(to).getDate() 
+    || new Date(from).getMonth()< new Date(to).getMonth()
+    || new Date(from).getFullYear()< new Date(to).getFullYear()){
       return 'text-danger';
     }
     else{
@@ -142,7 +151,7 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
         </FormGroup>    
         <FormGroup>
         <Button onClick={()=>this.props.toggleDataPickerFrom()} id="from" className="d-inline-block">From: </Button>
-          <span className="d-inline-block border text-center w-50 ml-5"> <p className={this.state.dateValidity}>{this.state.from.toLocaleDateString('en-GB')}</p></span>
+          <span className="d-inline-block border text-center w-50 ml-5"> <p className={this.state.dateValidity}>{this.state.dateAtScreenFrom}</p></span>
           <Collapse isOpen={this.props.datePickerFrom}>
             <HolidayTableComponent 
               prev={(count)=>this.props.prev(count)} 
@@ -152,13 +161,15 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
               year={this.props.year} 
               dates={this.props.dates} 
               handleDatePicker={this.handleDatePickerFrom}
+              dayBordered={this.props.dayBordered}
               listValues={this.props.listValues}
+              dayFromCalendar={this.props.dayFromCalendar}
               optionalAll={false}></HolidayTableComponent>
           </Collapse>
         </FormGroup>
         <FormGroup>
           <Button onClick={()=>this.props.toggleDataPickerTo()} id="to" className="d-inline-block">To: </Button>
-          <span className="d-inline-block border text-center w-50 ml-5"> <p className={this.state.dateValidity}>{this.state.to.toLocaleDateString('en-GB')}</p> </span>
+          <span className="d-inline-block border text-center w-50 ml-5"> <p className={this.state.dateValidity}>{this.state.dateAtScreenTo}</p> </span>
           <Collapse isOpen={this.props.datePickerTo}>
             <HolidayTableComponent 
               prev={(count)=>this.props.prev(count)} 
@@ -168,7 +179,9 @@ export default class HolidayForm extends React.Component<InewFormProps, IformSta
               year={this.props.year} 
               dates={this.props.dates} 
               handleDatePicker={this.handleDatePickerTo}
+              dayBordered={this.props.dayBordered}
               listValues={this.props.listValues}
+              dayFromCalendar={this.props.dayFromCalendar}
               optionalAll={false}></HolidayTableComponent>
           </Collapse>
         </FormGroup>

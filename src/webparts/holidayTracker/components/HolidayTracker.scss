@@ -5,6 +5,31 @@
   float: left;
   min-width: 100px;
 }
+.calendar {
+  display: grid;
+  grid-template: repeat(7,minmax(20px,1.5fr))/ repeat(7,minmax(20px,3.5rem));
+  justify-content: center;
+  
+}
+
+.calendar-item{
+  width:3rem;
+  align-items: center;
+
+}
+
+.calendar-item .calendar-content {
+  display: flex;
+  align-items: center;  
+}
+.dayName{
+  height:1.5rem;
+  color:#fff;
+  border-color: #545b62;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
 
 .customCard {
   width: 20px;
@@ -12,6 +37,18 @@
   text-align: center;
   line-height: 1.2;
 }
+
+.customPointer {
+  cursor: pointer;
+}
+.customDropDown:hover {
+  color: #fff !important;
+  background-color: #28a745!important;
+}
+.customDropMenu {
+  font-size:inherit !important;
+}
+
 .list {
   color: #333333;
   font-family: 'Segoe UI Regular WestEuropean', 'Segoe UI', Tahoma, Arial, sans-serif;

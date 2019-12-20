@@ -67,10 +67,10 @@ export default class ManageTeamForm extends React.Component<IManageTeamFormProps
     event.preventDefault();
       const request = {
         id: this.props.user===undefined?"":this.props.user.ID,
-        agentName: event.target.agentName.value,
-        email : event.target.agentEmail.value,
-        lobSelect: event.target.selectLob.value,
-        role: event.target.role.value,
+        agentName: event.target.agentName.value === undefined || event.target.agentName.value === ""?this.props.user.agentName:event.target.agentName.value,
+        email : event.target.agentEmail.value === undefined || event.target.agentEmail.value === ""?this.props.user.agentEmail:event.target.agentEmail.value,
+        lobSelect: event.target.selectLob.value === undefined || event.target.selectLob.value === ""? this.props.user.lob:event.target.selectLob.value,
+        role: event.target.role.value === undefined ||event.target.role.value===""?this.props.user.role:event.target.role.value,
         supervisor: this.isRoleSupervisor(event),
         admin: (event)=>event.target.admin.value==="on"?"true":"false"
       }

@@ -19,7 +19,11 @@ import {
   Card,
   CardHeader,
   CardBody,
-  CardText
+  CardText,
+  Dropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownToggle
 } from 'reactstrap';
 import './HolidayTracker.scss';
 
@@ -72,6 +76,9 @@ export interface IState {
   lobIsSelected:boolean;
   teamStructure:boolean;
   supervisorArea:boolean;
+  dropdownOpen:boolean;
+  dayBordered:boolean;
+  dayFromCalendar:number;
 }
 
 export interface ISPList {
@@ -150,7 +157,10 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
       selectedLob:[],
       lobIsSelected:false,
       teamStructure:false,
-      supervisorArea:false 
+      supervisorArea:false,
+      dropdownOpen:false,
+      dayBordered:false,
+      dayFromCalendar:undefined
     };
     this.toggle = this.toggle.bind(this);
     this.checkAgainstPreviousRequests=this.checkAgainstPreviousRequests.bind(this);
@@ -159,8 +169,11 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
     this.selectHandleSubmit = this.selectHandleSubmit.bind(this);
     this.setLists= this.setLists.bind(this)
     this.toggleSupervisorsArea=this.toggleSupervisorsArea.bind(this);
+    this.toggleDropDown=this.toggleDropDown.bind(this)
   }
   
+  private toggleDropDown = () => this.setState((prevState) => ({dropdownOpen:!prevState.dropdownOpen}));
+
   private selectHandleSubmit(event){
     
     let option;
@@ -181,7 +194,8 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
   }
   private toggle() {
     this.setState(prevState=>({
-      modal: !prevState.modal
+      modal: !prevState.modal,
+      dayFromCalendar: undefined
     }));
   }
   public toggleSupervisorsArea(){
@@ -189,16 +203,20 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
       supervisorArea:!prevState.supervisorArea
     }))
   }
-  public handleDatePicker(day:number, month:number, all=false){
+  public handleDatePicker(day:number, month:number, year:number, all=false){
     if(all){
       this.setState({
-        selectedDate: new Date(new Date().getFullYear(), month, day),
-        dayCheck: false
+        selectedDate: new Date(year, month, day),
+        dayCheck: false,
+        dayBordered: false,
+        dayFromCalendar:undefined 
       });
     }else{ 
       this.setState({
-        selectedDate: new Date(new Date().getFullYear(), month, day),
-        dayCheck: true
+        selectedDate: new Date(year, month, day),
+        dayCheck: true,
+        dayBordered: true,
+        dayFromCalendar:day
       }); 
     }
   };
@@ -220,7 +238,7 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
     this.setState({
       selectedLob:this.state.user.lob
     })
-    console.log("is this happening? "+this.state.usersList)
+
   }
 
   public checkAgainstPreviousRequests(request):boolean {
@@ -235,9 +253,16 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
           const dateMonthTo= new Date(request.to).getMonth();
           const itemDateMonthFrom = new Date(item.from).getMonth();
           const itemDateMonthTo = new Date(item.to).getMonth();
-          if((dateFrom>=itemDateFrom && dateFrom<=itemDateTo || dateTo>=itemDateFrom && dateTo<=itemDateTo)
+          const dateYearFrom = new Date(request.from).getFullYear();
+          const itemDateYearFrom = new Date(item.from).getFullYear();
+          const dateYearTo = new Date(request.to).getFullYear();
+          const itemDateYearTo = new Date(item.to).getFullYear();
+          if((dateFrom>=itemDateFrom 
+          && dateFrom<=itemDateTo 
+          || dateTo>=itemDateFrom)
           && (dateMonthFrom === itemDateMonthFrom || dateMonthTo === itemDateMonthTo)
-          && (dateMonthFrom === itemDateMonthTo || dateMonthTo === itemDateMonthFrom)){
+          && (dateMonthFrom === itemDateMonthTo || dateMonthTo === itemDateMonthFrom)
+          && (dateYearFrom === itemDateYearTo || dateYearTo === itemDateYearFrom)){
             alert("Request invaid. Please check whether you have older requests for same period");
             
             return false;
@@ -269,20 +294,23 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
     const selectedDateYear = new Date(selectedDate).getFullYear();
     if(dayCheck){
       if((startDateDay<=selectedDateDay && selectedDateDay<=endDateDay) 
-        && (startDateMonth === selectedDateMonth || endDateMonth === selectedDateMonth)
-        && (startDateYear === selectedDateYear || endDateYear === selectedDateYear)){
+        && (startDateMonth===selectedDateMonth || selectedDateMonth===endDateMonth )
+        && (startDateYear===selectedDateYear || endDateYear===selectedDateYear)){
           //->list In State of dates --> reflected on caledar with colours?
+          
         return true;
       }else{
+        
         return false;
       }
     }
-    else if((startDateMonth===selectedDateMonth && selectedDateMonth===endDateMonth) 
+    else if((startDateMonth===selectedDateMonth || selectedDateMonth===endDateMonth) 
       && (startDateYear===selectedDateYear || endDateYear === selectedDateYear)){
-
+        
         return true;
     }
     else{
+      
       return false;
     }
 
@@ -404,39 +432,7 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
       }
     };
 
-    let checkDates=(from:string, to:string, selectedDate:string, dayCheck=false):boolean=>{
 
-      const startDateDay = new Date(from).getDate();
-      const endDateDay = new Date(to).getDate();
-      const selectedDateDay= new Date(selectedDate).getDate();
-
-      const startDateMonth = new Date(from).getMonth();
-      const endDateMonth = new Date(to).getMonth();
-      const selectedDateMonth = new Date(selectedDate).getMonth();
-
-      const startDateYear = new Date(from).getFullYear();
-      const endDateYear = new Date(to).getFullYear();
-      const selectedDateYear = new Date(selectedDate).getFullYear();
-      if(dayCheck){
-        if((startDateDay<=selectedDateDay && selectedDateDay<=endDateDay) 
-          && (startDateMonth === selectedDateMonth || endDateMonth === selectedDateMonth)
-          && (startDateYear === selectedDateYear || endDateYear === selectedDateYear)){
-            //->list In State of dates --> reflected on caledar with colours?
-          return true;
-        }else{
-          return false;
-        }
-      }
-      else if((startDateMonth===selectedDateMonth && selectedDateMonth===endDateMonth) 
-        && (startDateYear===selectedDateYear || endDateYear === selectedDateYear)){
-
-          return true;
-      }
-      else{
-        return false;
-      }
-  
-    };
 
     return (
       <div>
@@ -473,91 +469,64 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
           </Row>
           {this.state.supervisorArea?
           <Row>
-            <Col md="12">
-            <Row>
-              <Col md="4">
-              <Card body inverse color="info">
-                <CardHeader >My Leave Requests</CardHeader>
-                <CardBody>
-                    <CardText>
-                      Table filtered with all requests made using {this.props.context.pageContext.user.email}
-                    </CardText>
-                    <Button 
-                        color="secondary" 
-                        className="btn-sm"
-                        onClick={()=>this.setState({
-                          dataTableFilter: this.props.context.pageContext.user.email,
-                          lobIsSelected:false,
-                          teamStructure:false
-                      })}>Go</Button>
-                </CardBody>
-              </Card>
-              </Col>
-              <Col md="4">
-              <Card body inverse color="info">
-                <CardHeader >{this.state.user.lob} Leave Requests</CardHeader>
-                <CardBody>
-                    <CardText>
-                      Table filtered with all requests made by {this.state.user.lob}
-                    </CardText>
-                    <Button 
-                        color="secondary" 
-                        className="btn-sm"
-                        onClick={()=>this.setState({
-                          dataTableFilter: this.state.user.lob,
-                          lobIsSelected:false,
-                          selectedLob:this.state.user.lob
-                      })}>Go</Button>
-                </CardBody>
-              </Card>
-              </Col>
-              <Col md="4">
-                <Card body inverse color="info">
-                  <CardHeader >Select Line of Buisness</CardHeader>
-                  <CardBody>
-                    <CardText>
-                      Get access to data from selected Lne of business
-                    </CardText>
-                    <Form>
-                      <FormGroup>
-                        <Label for="lobSelect">Line of Buisness</Label>
-                        <Input type="select" name="select" id="lobSelect" onChange={()=>this.selectHandleSubmit(event)}>
-                          <option selected>None</option>
+            <Col md="12" className="mt-3">
+              <Row>
+                <Col md="4">
+                <Card body inverse color="primary" className="ml-3">
+                  <CardHeader className="customPointer" onClick={()=>this.setState({
+                            dataTableFilter: this.props.context.pageContext.user.email,
+                            lobIsSelected:false,
+                            teamStructure:false
+                        })}>My Leave Requests</CardHeader>
+                </Card>
+                </Col>
+                <Col md="4">
+                  <Card body inverse color="info">
+                    <CardHeader className="h-100 customPointer" onClick={()=>this.setState({
+                              dataTableFilter: this.state.user.lob,
+                              lobIsSelected:false,
+                              selectedLob:this.state.user.lob
+                          })}>{this.state.user.lob} Leave Requests</CardHeader>
+                  </Card>
+                </Col>
+                <Col md="4" >
+ 
+                  <Card body inverse color="success" className="mr-3">
+                    <CardHeader >
+                     <Dropdown isOpen={this.state.dropdownOpen} toggle={this.toggleDropDown}>
+                        <DropdownToggle className="bg-transparent border-0 p-0 customDropMenu" caret>
+                          Line of Buisness
+                        </DropdownToggle>
+                        <DropdownMenu>
                           {this.state.usersList
-                            .reduce((acc,item)=>acc.includes(item)?acc:[...acc,item], [])
-                            .map(item=>[...item.lob])
-                            .reduce((acc,lob)=>acc.includes(lob)?acc:[...acc,lob], [])
-                            .map(lob=>{return <option key={lob.name}>{lob}</option>})
-                          }
-                        </Input>
-                      </FormGroup>
-                    </Form>
-                  </CardBody>
-                </Card> 
-              </Col> 
-            </Row>
-            <Navbar color="light" light expand="md" className="clearfix">
-              <Nav className="mx-auto text-center" navbar pills>
-                <Row>
-                  <Col md="12">
-                    <NavItem className="text-center"> 
-                      {this.state.lobIsSelected || this.state.dataTableFilter==this.state.user.lob?
-                        <NavLink 
-                          className={this.state.teamStructure?"border border-secondary":null}
-                          href="#" 
-                          onClick={()=>{
-                          this.setState((prevState)=>({
-                            teamStructure:!prevState.teamStructure
-                          }))
-                      }}>
-                        
-                        <h5>Go To: <em>{this.state.selectedLob?this.state.selectedLob:this.state.dataTableFilter}</em> {this.state.teamStructure?"Leave Requests":"Structure"}</h5>
-                      </NavLink>:null}  
-                    </NavItem>
-                  </Col>
-                </Row>
-              </Nav>
-            </Navbar>
+                                .reduce((acc,item)=>acc.includes(item)?acc:[...acc,item], [])
+                                .map(item=>[...item.lob])
+                                .reduce((acc,lob)=>acc.includes(lob)?acc:[...acc,lob], [])
+                                .map(lob=>{return <DropdownItem className="text-center customDropDown" key={lob.name} onClick={()=>this.selectHandleSubmit(event)} value={lob}>{lob}</DropdownItem>})
+                              }
+                        </DropdownMenu>
+                      </Dropdown>
+                    </CardHeader>
+                  </Card> 
+                </Col> 
+              </Row>
+              <Row>
+                <Col md="12">
+                {this.state.lobIsSelected || this.state.dataTableFilter==this.state.user.lob?
+                  <Card body inverse color={this.state.lobIsSelected==false?"info":"success"} className="w-100 mt-3 mb-3 text-center">
+                    <CardHeader >{this.state.dataTableFilter} Leave Requests</CardHeader>
+                    <CardBody>
+
+                        <Button 
+                            className={this.state.lobIsSelected==false?"btn-sm bg-secondary text-white":"btn-sm bg-white text-dark"}
+                            onClick={()=>{
+                            this.setState((prevState)=>({
+                              teamStructure:!prevState.teamStructure
+                            }))}}>Go To: <em>{this.state.selectedLob?this.state.selectedLob:this.state.dataTableFilter}</em> {this.state.teamStructure?"Leave Requests":"Structure"}</Button>
+                    </CardBody>
+                  </Card>:null}
+                </Col>
+              </Row>
             </Col>
           </Row>:null} 
         </header>
@@ -575,26 +544,26 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
                   setLists={this.setLists}
                   context={this.state.context} 
                   siteUrl={this.props.siteUrl}>
-
                 </SupervsorsDashboard>
               </Collapse>:null}
             </Col>
           </Row>
           <Collapse isOpen={!this.state.teamStructure}>
-            <Row className="mb-5">
-                
+            <Row className="mb-5"> 
                 <Col md="12">
-                <HolidayTableComponent 
-                  prev={(count)=>prev(count)} 
-                  next={next} count={this.state.selectedMonth} 
-                  month={dates.months[this.state.selectedMonth-1]} 
-                  year={this.state.selectedYear} 
-                  dates={this.state.selectedWeek} 
-                  handleDatePicker={this.handleDatePicker}
-                  listValues={this.state.listValues}
-                  optionalAll={true}/> 
-              </Col>
-
+                  <HolidayTableComponent 
+                    prev={(count)=>prev(count)} 
+                    next={next} 
+                    count={this.state.selectedMonth} 
+                    month={dates.months[this.state.selectedMonth-1]} 
+                    year={this.state.selectedYear} 
+                    dates={this.state.selectedWeek} 
+                    handleDatePicker={this.handleDatePicker}
+                    listValues={this.state.listValues}
+                    optionalAll={true}
+                    dayBordered={this.state.dayBordered}
+                    dayFromCalendar={this.state.dayFromCalendar}/> 
+                </Col>
             </Row>
             <Row>
               <Col md={{size: 6, offset: 3}} className="text-center">
@@ -609,7 +578,7 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
                 listValues={this.state.listValues} 
                 selectedDate={this.state.selectedDate} 
                 dayCheck={this.state.dayCheck} 
-                checkDates={checkDates} 
+                checkDates={this.checkDates} 
                 deleteItem={this.deleteItem} 
                 approveItem={this.approveItem}
                 getSpecificList={this.getSpecificList}
@@ -646,6 +615,8 @@ class HolidayTracker extends React.Component<IHolidayTrackerProps,IState> {
             setLists={this.setLists}
             listValues={this.state.listValues}
             usersList={this.state.usersList}
+            dayBordered={this.state.dayBordered}
+            dayFromCalendar={this.state.dayFromCalendar}
           > {this.props.children}</HolidayNewModal>
         </section>
       </div>

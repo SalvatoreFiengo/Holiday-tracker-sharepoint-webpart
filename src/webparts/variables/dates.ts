@@ -6,6 +6,7 @@ const dates:Idates={
     yearStart: new Date(),
     yearEnd: new Date(),
     months: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+    days: ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],
     firstLastDayOfMonth: ()=>new Date(),
     weeksByMonth: ()=>[],
     getDateObj: (date:Date,user:Iuser,arr:[[Date,Iuser]])=>{
@@ -24,30 +25,31 @@ dates.firstLastDayOfMonth=(choice?:number|undefined, month?:number,year?:number|
     return result;
   };
 dates.weeksByMonth=(dateFirst:Date, dateSecond:Date, all:boolean|undefined=false,n?:number|undefined):number[] =>{
-    const start:number= dateFirst.getDate();
     const end:number = dateSecond.getDate();
     let month:number[]=[];
     let week:number[]=[];
     let weeks:[number[]]=[[]];
-    for(let i=start; i<=end; i++){
+   
+      const start:number= dateFirst.getDate();
+      for(let i=start; i<=end; i++){
       month.push(i);
       if(i%7!==0){
         week.push(i);
-      }else{
-        weeks.push(week);
-        week.push(i);
-        week=[];
+        }else{
+          weeks.push(week);
+          week.push(i);
+          week=[];
+        }
       }
-    }
-    if(all){
-      return month;
-    }else if(typeof(n)=== "number" && n>0){
+      if(all){
+        return month;
+      }else if(typeof(n)=== "number" && n>0){
 
-      return weeks[n];
-    }else{
-      n=1;
-      return weeks[n];
+        return weeks[n];
+      }else{
+        n=1;
+        return weeks[n];
 
-    }
+      }
   };
 export default dates;
